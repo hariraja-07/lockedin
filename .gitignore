@@ -1,0 +1,45 @@
+# === Signing / credentials — never commit ===
+*.jks
+*.keystore
+keystore.properties
+key.properties
+local.properties
+*.pem
+*.p12
+
+# === Gradle / build outputs ===
+.gradle/
+build/
+*/build/
+app/release/
+captures/
+.cxx/
+*.apk
+*.aab
+*.dex
+*.ap_
+
+# === Android Studio / IntelliJ ===
+.idea/
+*/.idea/
+*.iml
+*/*.iml
+.navigation/
+local.properties
+.DS_Store
+
+# === Log / profiling ===
+*.hprof
+*.log
+
+# === Google Services (if ever added) ===
+google-services.json
+
+# === Fastlane (if ever added) ===
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# === Version control noise ===
+*.orig

@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "packages": {
+    "com.google.android.youtube": {
+      "mode": "PARTIAL",
+      "whitelist": [
+        { "viewIdRegex": ".*(watch_player|comments_section|subscriptions|search_results).*" }
+      ],
+      "block": [
+        {
+          "id": "yt_shorts_player",
+          "viewIdRegex": ".*reel_player.*|.*reel_watch_player.*|.*shorts_player.*"
+        },
+        {
+          "id": "yt_shorts_feed",
+          "viewIdRegex": ".*reel_recycler.*|.*shorts_container.*"
+        },
+        {
+          "id": "yt_shorts_tab",
+          "viewIdRegex": ".*pivot_bar_item.*|.*bottom_bar.*",
+          "requireTextRegex": "(?i)^shorts$",
+          "requireContentDescRegex": "(?i)shorts"
+        }
+      ]
+    },
+    "com.instagram.android": {
+      "mode": "PARTIAL",
+      "whitelist": [
+        { "viewIdRegex": "^direct_.*|.*inbox.*|.*thread_.*" }
+      ],
+      "block": [
+        {
+          "id": "ig_reels_viewer",
+          "viewIdRegex": ".*clips_viewer.*|.*clips_swipe.*|.*reels_viewer.*"
+        },
+        {
+          "id": "ig_reels_tab",
+          "viewIdRegex": ".*clips_tab.*|.*tab_avatar.*|.*tab_bar.*",
+          "requireContentDescRegex": "(?i)reels"
+        }
+      ]
+    },
+    "com.zhiliaoapp.musically": { "mode": "FULL" },
+    "com.ss.android.ugc.trill": { "mode": "FULL" },
+    "com.facebook.katana": {
+      "mode": "PARTIAL",
+      "whitelist": [
+        { "viewIdRegex": ".*messenger.*|.*newsfeed_recycler.*|.*feed_recycler.*" }
+      ],
+      "block": [
+        {
+          "id": "fb_reels_viewer",
+          "viewIdRegex": ".*reels_player.*|.*reel_viewer.*|.*shorts_player.*"
+        },
+        {
+          "id": "fb_reels_tab",
+          "viewIdRegex": ".*tab_icon.*|.*bottom_nav.*",
+          "requireContentDescRegex": "(?i)reels"
+        }
+      ]
+    },
+    "com.snapchat.android": { "mode": "FULL" }
+  },
+  "browsers": {
+    "com.android.chrome": { "urlBarViewIdRegex": "com\\.android\\.chrome:id/url_bar" },
+    "com.sec.android.app.sbrowser": { "urlBarViewIdRegex": ".*location_bar_edit_text.*" },
+    "org.mozilla.firefox": { "urlBarViewIdRegex": ".*mozac_browser_toolbar_url_view.*" },
+    "com.microsoft.emmx": { "urlBarViewIdRegex": ".*url_bar.*" }
+  },
+  "browserBlockUrlPatterns": [
+    "youtube\\.com/shorts",
+    "instagram\\.com/reels?/",
+    "tiktok\\.com"
+  ]
+}

@@ -1,0 +1,72 @@
+package com.shortsblocker.app.rules
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class RuleSetParserTest {
+
+    private val sampleJson = """
+        {
+          "version": 3,
+          "packages": {
+            "com.instagram.android": {
+              "mode": "PARTIAL",
+              "whitelist": [ { "viewIdRegex": "^direct_.*" } ],
+              "block": [
+                { "id": "ig_reels_viewer", "viewIdRegex": ".*clips_viewer.*" },
+                {
+                  "id": "ig_reels_tab",
+                  "viewIdRegex": ".*tab_bar.*",
+                  "requireContentDescRegex": "(?i)reels"
+                }
+              ]
+            },
+            "com.zhiliaoapp.musically": { "mode": "FULL" }
+          },
+          "browsers": {
+            "com.android.chrome": { "urlBarViewIdRegex": "com\\.android\\.chrome:id/url_bar" }
+          },
+          "browserBlockUrlPatterns": [ "youtube\\.com/shorts" ]
+        }
+    """.trimIndent()
+
+    @Test
+    fun `parses version`() {
+        assertEquals(3, RuleSetParser.parse(sampleJson).version)
+    }
+
+    @Test
+    fun `parses package modes`() {
+        val ruleSet = RuleSetParser.parse(sampleJson)
+        assertEquals(PackageMode.PARTIAL, ruleSet.packages.getValue("com.instagram.android").mode)
+        assertEquals(PackageMode.FULL, ruleSet.packages.getValue("com.zhiliaoapp.musically").mode)
+    }
+
+    @Test
+    fun `parses whitelist and block rules with optional fields`() {
+        val ig = RuleSetParser.parse(sampleJson).packages.getValue("com.instagram.android")
+        assertEquals(1, ig.whitelist.size)
+        assertTrue(ig.whitelist[0].viewIdRegex.containsMatchIn("direct_thread_view"))
+
+        assertEquals(2, ig.block.size)
+        val tabRule = ig.block.first { it.id == "ig_reels_tab" }
+        assertTrue(tabRule.requireContentDescRegex!!.containsMatchIn("Reels"))
+        assertEquals(null, tabRule.requireTextRegex)
+    }
+
+    @Test
+    fun `parses browsers and url patterns`() {
+        val ruleSet = RuleSetParser.parse(sampleJson)
+        assertTrue(ruleSet.browsers.getValue("com.android.chrome").urlBarViewIdRegex.containsMatchIn("com.android.chrome:id/url_bar"))
+        assertTrue(ruleSet.browserBlockUrlPatterns[0].containsMatchIn("youtube.com/shorts/xyz"))
+    }
+
+    @Test
+    fun `missing optional sections default to empty`() {
+        val ruleSet = RuleSetParser.parse("""{ "version": 1 }""")
+        assertTrue(ruleSet.packages.isEmpty())
+        assertTrue(ruleSet.browsers.isEmpty())
+        assertTrue(ruleSet.browserBlockUrlPatterns.isEmpty())
+    }
+}

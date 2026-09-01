@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">Shorts Blocker</string>
+    <string name="accessibility_service_label">Shorts Blocker 감지 서비스</string>
+    <string name="accessibility_service_description">
+        YouTube Shorts, Instagram Reels, TikTok 화면을 감지해 즉시 차단합니다.
+        화면 내용은 기기에서만 판정하며 어디로도 전송하거나 저장하지 않습니다.
+    </string>
+    <string name="overlay_message">숏폼 콘텐츠가 차단되었습니다</string>
+    <string name="guard_notification_channel_name">차단 서비스 상태</string>
+    <string name="guard_notification_text">숏폼 차단이 실행 중입니다</string>
+
+    <string name="onboarding_title">Shorts Blocker</string>
+    <string name="onboarding_body">YouTube Shorts, Instagram Reels, TikTok만 차단합니다.\nYouTube 롱폼, Instagram DM·피드는 그대로 사용할 수 있습니다.</string>
+    <string name="onboarding_accessibility_button">접근성 권한 설정 열기</string>
+    <string name="onboarding_overlay_button">다른 앱 위에 표시 권한 열기</string>
+    <string name="onboarding_pin_button">PIN 설정하고 시작하기</string>
+    <string name="onboarding_sideload_notice">Play 스토어 밖에서 설치한 경우, 설정 &gt; 접근성에서 이 앱을 켤 때\n추가 확인 절차가 필요할 수 있습니다.</string>
+    <string name="onboarding_soft_lock_notice">참고: 앱 내 PIN은 이 앱의 설정 화면만 보호합니다.\n기기 설정 &gt; 접근성에서 서비스를 끄는 것 자체는 OS 정책상 어떤 앱도 막을 수 없습니다.</string>
+
+    <string name="home_title">Shorts Blocker</string>
+    <string name="home_status_active">차단 활성화됨</string>
+    <string name="home_status_inactive">접근성 서비스가 꺼져 있습니다</string>
+    <string name="home_settings_button">설정 (PIN 필요)</string>
+    <string name="home_recent_events_title">최근 판정 로그</string>
+    <string name="home_no_events">아직 기록된 판정이 없습니다</string>
+    <string name="home_disable_confirm_title">차단을 끄시겠습니까?</string>
+    <string name="home_disable_confirm_body">차단을 끄면 숏폼 콘텐츠가 다시 보이게 됩니다. 계속하려면 PIN 입력이 필요합니다.</string>
+    <string name="home_disable_confirm_yes">계속</string>
+    <string name="home_disable_confirm_cancel">취소</string>
+
+    <string name="pin_setup_title">PIN 설정</string>
+    <string name="pin_setup_body">설정 화면 보호용 4자리 이상 PIN을 입력하세요</string>
+    <string name="pin_setup_recovery_question_label">복구 질문 (PIN을 잊었을 때 사용)</string>
+    <string name="pin_setup_recovery_answer_label">복구 답변</string>
+    <string name="pin_setup_confirm">저장</string>
+    <string name="pin_entry_title">PIN 입력</string>
+    <string name="pin_entry_confirm">확인</string>
+    <string name="pin_entry_error">PIN이 일치하지 않습니다</string>
+    <string name="pin_entry_forgot">PIN을 잊으셨나요?</string>
+    <string name="pin_recovery_title">PIN 복구</string>
+    <string name="pin_recovery_answer_hint">복구 답변 입력</string>
+    <string name="pin_recovery_confirm">확인 후 새 PIN 설정</string>
+    <string name="pin_recovery_error">답변이 일치하지 않습니다</string>
+
+    <string name="settings_title">설정</string>
+    <string name="settings_change_pin">PIN 변경</string>
+    <string name="settings_open_accessibility">접근성 설정 열기</string>
+    <string name="settings_open_overlay">오버레이 권한 열기</string>
+    <string name="settings_per_app_title">앱별 차단 켜기/끄기</string>
+</resources>
