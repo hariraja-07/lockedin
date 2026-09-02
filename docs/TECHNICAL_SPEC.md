@@ -138,19 +138,19 @@ Each case lists preconditions, steps, and expected result, and is traced to the 
 | **TC-25** | FR-18 | Manual | On PIN entry from disable flow | Enter incorrect PIN | Inline error shown; `masterEnabled` remains `true`; blocking stays ON |
 | **TC-26** | FR-19 | Manual | Master OFF (per TC-24) | Open TikTok | No BACK/HOME/overlay triggered; app usable normally |
 | **TC-27** | FR-20, FR-21 | Manual | Settings open, master ON | Toggle "Facebook" OFF, leave others ON | Facebook Reels no longer blocked; YouTube/Instagram/TikTok/Snapchat still blocked |
-| **TC-28** | FR-22 | Manual | Settings open | Inspect Facebook and Snapchat rows | Facebook row shows "감지 정확도 낮을 수 있음"; Snapchat row shows "앱 전체 차단" |
+| **TC-28** | FR-22 | Manual | Settings open | Inspect Facebook and Snapchat rows | Facebook row shows "Detection accuracy may be lower"; Snapchat row shows "Blocks the entire app" |
 
 ### 3.4 PIN & Recovery Flows
 
 | Case ID | FR | Type | Precondition | Steps | Expected Result |
 |---|---|---|---|---|---|
 | **TC-29** | FR-23 | Manual | Fresh install, no PIN set | Launch app | Routes to Onboarding, then PIN Setup; Home is unreachable directly |
-| **TC-30** | FR-23, FR-24 | Manual | On PIN Setup screen | Enter a 3-digit PIN, leave question/answer blank, submit | Error: "PIN은 4자리 이상 숫자여야 합니다"; form not submitted |
-| **TC-31** | FR-24 | Manual | On PIN Setup screen | Enter valid 4+ digit PIN, leave recovery question blank, submit | Error: "복구 질문과 답변을 입력하세요"; form not submitted |
+| **TC-30** | FR-23, FR-24 | Manual | On PIN Setup screen | Enter a 3-digit PIN, leave question/answer blank, submit | Error: "PIN must be at least 4 digits"; form not submitted |
+| **TC-31** | FR-24 | Manual | On PIN Setup screen | Enter valid 4+ digit PIN, leave recovery question blank, submit | Error: "Enter a recovery question and answer"; form not submitted |
 | **TC-32** | FR-23, FR-24 | Manual | On PIN Setup screen | Enter valid PIN + question + answer, submit | PIN and recovery hash saved; navigates to Home; app restart routes directly to Home (`isPinSet() == true`) |
 | **TC-33** | FR-26 | Manual | PIN set, on Home | Tap "Settings" | Routes to PIN Entry before Settings is shown |
 | **TC-34** | FR-26, FR-29 | Manual | On PIN Entry (Settings path) | Enter correct PIN | Navigates to Settings |
-| **TC-35** | FR-29 | Manual | On PIN Entry | Enter incorrect PIN | Inline error shown ("PIN이 올바르지 않습니다" equivalent); stays on PIN Entry |
+| **TC-35** | FR-29 | Manual | On PIN Entry | Enter incorrect PIN | Inline error shown ("PIN doesn't match"); stays on PIN Entry |
 | **TC-36** | FR-27 | Manual | On PIN Entry | Tap "Forgot PIN" | Navigates to Recovery screen, displaying the stored recovery question |
 | **TC-37** | FR-27, FR-29 | Manual | On Recovery screen | Enter wrong answer | Inline error shown; PIN unchanged |
 | **TC-38** | FR-27, FR-28 | Manual | On Recovery screen | Enter correct answer (case/whitespace-insensitive) | Navigates to PIN Setup to create a new PIN + new recovery Q&A; old PIN no longer valid |

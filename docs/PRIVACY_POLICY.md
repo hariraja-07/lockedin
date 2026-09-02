@@ -1,30 +1,31 @@
-# 개인정보처리방침 (초안)
+# Privacy Policy (Draft)
 
-**Shorts Blocker**는 개인용 자기 통제 앱으로, 다음 원칙에 따라 동작한다.
+**Shorts Blocker** is a personal self-control app that operates under the following principles.
 
-## 수집하는 정보
-없음. 이 앱은 서버를 갖지 않으며, 네트워크 권한(`INTERNET`)을 요청하지 않는다. 화면 콘텐츠, 시청 기록, 계정 정보, 위치, 광고 식별자 등 어떤 데이터도 기기 밖으로 전송하지 않는다.
+## Information collected
+None. The app has no server and does not request the `INTERNET` permission. No data — screen content, viewing history, account information, location, advertising identifiers, or anything else — ever leaves the device.
 
-## 접근성 서비스가 처리하는 정보
-YouTube, Instagram, TikTok, 그리고 사용자가 지정한 브라우저 앱의 **화면 구조(뷰 ID, 탭/버튼 텍스트)** 만을 실시간으로 검사해 숏폼 콘텐츠 여부를 판정한다.
-- 이 판정은 **기기 내에서만** 이루어지며 결과를 저장하지 않는다(단, 아래 "로컬 판정 로그"는 예외).
-- 화면에 표시된 실제 콘텐츠(영상, 사진, 메시지 본문 등)는 읽거나 저장하거나 어디로도 전송하지 않는다.
+## What the accessibility service processes
+It inspects only the **screen structure** (view IDs, tab/button text) of YouTube, Instagram, TikTok, and the browser apps the user has selected, in real time, to decide whether the content is short-form.
+- This decision happens **only on-device** and its result is not stored (except for the "Local decision log" described below).
+- The actual content shown on screen — videos, photos, message text, etc. — is never read, stored, or transmitted anywhere.
 
-## 로컬 판정 로그
-차단/미매칭 이벤트를 기기 내부에만 최근 50건까지 보관한다. 저장 항목은 **앱 패키지명, 매칭된 규칙 ID(또는 "UNMATCHED"), 타임스탬프** 뿐이며 화면 내용은 포함되지 않는다. 이 로그는 앱 삭제 시 함께 삭제되며 외부로 전송되지 않는다.
+## Local decision log
+The app keeps up to the last 50 block/no-match events, on-device only. Each entry contains only the **app package name, the matched rule ID (or "UNMATCHED"), and a timestamp** — never screen content. This log is deleted when the app is uninstalled and is never transmitted externally.
 
-## PIN 및 복구 질문
-설정 화면 보호를 위한 PIN과 복구 질문/답변은 기기 내 암호화 저장소(EncryptedSharedPreferences)에 솔트 처리된 해시로만 저장된다. 평문으로 저장되거나 기기 밖으로 전송되지 않는다.
+## PIN and recovery question
+The PIN and recovery question/answer that protect the Settings screen are stored only as salted hashes in on-device encrypted storage (`EncryptedSharedPreferences`). They are never stored in plaintext or transmitted off the device.
 
-## 권한 사용 목적
-| 권한 | 목적 |
+## Purpose of each permission
+
+| Permission | Purpose |
 |---|---|
-| 접근성 서비스 | Shorts/Reels/TikTok 화면 감지 및 즉시 차단 |
-| 다른 앱 위에 표시 | 차단 시 짧은 안내 오버레이 표시 |
-| 알림 표시 | 차단 서비스가 실행 중임을 알리는 상시 알림 |
-| 부팅 시 시작 | 기기 재부팅 후 차단 서비스 자동 재시작 |
+| Accessibility service | Detect and immediately block Shorts/Reels/TikTok screens |
+| Display over other apps | Show a brief notice when content is blocked |
+| Notifications | Persistent notification indicating the blocking service is running |
+| Start on boot | Automatically restart the blocking service after a device reboot |
 
-## 문의
-이 앱은 개인 프로젝트로 배포된다. 문의처는 배포 시 이 문서에 추가한다.
+## Contact
+This app is distributed as a personal project. Contact information will be added to this document at the time of distribution.
 
-*최종 수정: 초안 — 실제 배포 전 연락처와 사업자 정보를 채워 넣을 것.*
+*Last updated: draft — contact and business information to be filled in before public release.*

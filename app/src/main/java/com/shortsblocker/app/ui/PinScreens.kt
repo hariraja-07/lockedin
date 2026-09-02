@@ -57,10 +57,13 @@ fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
 
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
+        val pinTooShortError = stringResource(R.string.pin_setup_error_pin_too_short)
+        val missingRecoveryError = stringResource(R.string.pin_setup_error_missing_recovery)
+
         Button(onClick = {
             when {
-                pin.length < 4 -> error = "PIN은 4자리 이상 숫자여야 합니다"
-                question.isBlank() || answer.isBlank() -> error = "복구 질문과 답변을 입력하세요"
+                pin.length < 4 -> error = pinTooShortError
+                question.isBlank() || answer.isBlank() -> error = missingRecoveryError
                 else -> {
                     pinManager.setPin(pin)
                     pinManager.setRecovery(question, answer)

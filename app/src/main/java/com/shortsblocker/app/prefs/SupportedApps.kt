@@ -8,7 +8,7 @@ object SupportedApps {
         SupportedApp("com.google.android.youtube", "YouTube"),
         SupportedApp("com.instagram.android", "Instagram"),
         SupportedApp("com.zhiliaoapp.musically", "TikTok"),
-        SupportedApp("com.facebook.katana", "Facebook", note = "감지 정확도 낮을 수 있음"),
-        SupportedApp("com.snapchat.android", "Snapchat", note = "앱 전체 차단"),
+        SupportedApp("com.facebook.katana", "Facebook", note = "Detection accuracy may be lower"),
+        SupportedApp("com.snapchat.android", "Snapchat", note = "Blocks the entire app"),
     )
 }

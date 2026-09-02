@@ -1,15 +1,15 @@
-# 설계 결정 기록
+# Design Decisions
 
-## 판정 방식 조합
-- **1차: viewId 정규식.** 플레이어/뷰어/피드 컨테이너처럼 화면에 유일하게 나타나는 요소는 viewId 매칭만으로 충분히 신뢰할 수 있음.
-- **2차: 텍스트/contentDescription 추가 조건.** 하단 탭바처럼 여러 항목이 같은 viewId 패턴(`bottom_bar_item`, `tab_bar` 등)을 공유하는 경우, viewId만으로는 "Shorts 탭"과 "홈 탭"을 구분할 수 없음. 이런 규칙에는 `requireTextRegex` / `requireContentDescRegex`를 추가로 요구해 오탐을 줄임.
-- 화이트리스트는 항상 최우선 — 같은 화면에 차단 대상 노드와 화이트리스트 노드가 동시에 있으면 무조건 허용.
+## Combining detection strategies
+- **Primary: `viewId` regex.** Elements that appear uniquely on a screen — the player, the viewer, the feed container — can be reliably matched by `viewId` alone.
+- **Secondary: text / contentDescription conditions.** For something like a bottom tab bar, where several tabs share the same `viewId` pattern (e.g. `bottom_bar_item`, `tab_bar`), `viewId` alone can't tell a "Shorts tab" from a "Home tab." Those rules additionally require a `requireTextRegex` / `requireContentDescRegex` match to cut down false positives.
+- The whitelist always wins — if a screen contains both a block-target node and a whitelist node at the same time, it's unconditionally allowed.
 
-## 룰 갱신 방식: 내장 리소스만 (확정)
-개인용 자기 통제 앱이므로 별도 서버/호스팅 유지 부담 없이 `assets/block_rules.json`으로만 관리. YouTube/Instagram이 뷰 ID를 바꾸면 룰 파일을 수정하고 앱을 재배포. `RuleEvaluator`가 매칭 실패(Unmatched)를 로컬 로그에 남기므로, 실패가 누적되면 룰을 갱신할 시점을 사용자가 직접 알 수 있음.
+## Rule update mechanism: bundled resources only (final)
+Since this is a personal self-control app, there's no separate server or hosting to maintain — rules live entirely in `assets/block_rules.json`. When YouTube or Instagram change their view IDs, the rule file gets updated and the app gets rebuilt. `RuleEvaluator` logs match failures (`Unmatched`) locally, so if failures start piling up, the user can tell it's time to update the rules themselves.
 
-## PIN 분실 복구 방식: 보안 질문 (확정)
-서버/이메일 없이 전부 온디바이스로 처리하기 위해 이메일 인증 대신 **로컬 보안 질문/답변**을 PIN 설정과 함께 저장. 질문·답변은 PBKDF2(솔트+120,000회 반복)로 해시해 저장하며 평문으로 남지 않음. 복구에 성공하면 새 PIN을 다시 설정하는 화면으로 이동.
+## PIN recovery method: security question (final)
+To keep everything on-device with no server or email dependency, PIN setup also stores a **local security question and answer** instead of email verification. Both the question and answer are hashed with PBKDF2 (salted, 120,000 iterations) and never stored in plaintext. A successful recovery routes to a screen for setting a brand-new PIN.
 
-## OS 레벨 한계 (숨기지 않고 고지)
-앱 내 PIN은 이 앱의 설정 화면만 보호한다. **기기 설정 > 접근성**에서 서비스 자체를 끄는 것은 Android 정책상 어떤 앱도 막을 수 없다. 온보딩 화면(`onboarding_soft_lock_notice`)에서 이 사실을 사용자에게 명시적으로 알린다 — 이 앱은 "하드 락"이 아니라 자기 통제를 돕는 소프트 커밋 도구다.
+## OS-level limits (disclosed, not hidden)
+The in-app PIN only protects this app's own Settings screen. Turning the service itself off under **device Settings > Accessibility** is something no app can prevent — that's Android OS policy. The onboarding screen (`onboarding_soft_lock_notice`) states this explicitly to the user — this app is a soft-commitment tool that supports self-control, not a "hard lock."

@@ -25,9 +25,10 @@
         </activity>
 
         <!--
-          접근성 서비스: 화면 콘텐츠는 온디바이스에서만 판정하며 어디로도 전송되지 않음.
-          Play 스토어 심사 시 이 서비스의 목적(숏폼 콘텐츠 감지·차단)을 명확히 소명해야 함.
-          자세한 내용: docs/PLAY_STORE_ACCESSIBILITY_NOTES.md
+          Accessibility service: screen content is evaluated on-device only and
+          never transmitted anywhere. Google Play review requires a clear
+          justification of this service's purpose (short-form content detection
+          and blocking). Details: docs/PLAY_STORE_ACCESSIBILITY_NOTES.md
         -->
         <service
             android:name=".service.ShortsBlockAccessibilityService"
