@@ -53,6 +53,21 @@ fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> 
             Text(stringResource(R.string.settings_open_overlay))
         }
 
+        Button(onClick = {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:${context.packageName}"),
+            )
+            context.startActivity(intent)
+        }) {
+            Text(stringResource(R.string.settings_open_battery))
+        }
+
+        Text(
+            text = stringResource(R.string.onboarding_oem_hint),
+            style = MaterialTheme.typography.bodySmall,
+        )
+
         Button(onClick = onChangePin) {
             Text(stringResource(R.string.settings_change_pin))
         }

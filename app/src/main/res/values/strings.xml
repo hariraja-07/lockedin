@@ -15,6 +15,8 @@
     <string name="onboarding_body">Only blocks YouTube Shorts, Instagram Reels, and TikTok.\nYouTube long-form videos and Instagram DMs/feed still work normally.</string>
     <string name="onboarding_accessibility_button">Open accessibility settings</string>
     <string name="onboarding_overlay_button">Open display-over-other-apps permission</string>
+    <string name="onboarding_battery_button">Allow unrestricted battery (keeps watchdog alive)</string>
+    <string name="onboarding_oem_hint">On Xiaomi/Huawei/Samsung/Oppo/OnePlus also enable \"Autostart\" and exclude LockedIn from battery cleaning under the phone\'s Settings → Apps, or the system may kill the watchdog.</string>
     <string name="onboarding_pin_button">Set up PIN and get started</string>
     <string name="onboarding_sideload_notice">If installed outside the Play Store, enabling this app under Settings &gt; Accessibility\nmay require an extra confirmation step.</string>
     <string name="onboarding_soft_lock_notice">Note: the in-app PIN only protects this app\'s Settings screen.\nNo app can prevent the service itself from being turned off under Settings &gt; Accessibility — that\'s an OS-level limit.</string>
@@ -50,6 +52,7 @@
     <string name="settings_change_pin">Change PIN</string>
     <string name="settings_open_accessibility">Open accessibility settings</string>
     <string name="settings_open_overlay">Open overlay permission</string>
+    <string name="settings_open_battery">Open battery optimization settings</string>
     <string name="settings_per_app_title">Per-app blocking on/off</string>
 
     <string name="lockout_title">Protection is off</string>

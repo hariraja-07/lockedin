@@ -48,6 +48,18 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             Text(stringResource(R.string.onboarding_overlay_button))
         }
 
+        Button(onClick = {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:${context.packageName}"),
+            )
+            context.startActivity(intent)
+        }) {
+            Text(stringResource(R.string.onboarding_battery_button))
+        }
+
+        Text(text = stringResource(R.string.onboarding_oem_hint), style = MaterialTheme.typography.bodySmall)
+
         Button(onClick = onFinished) {
             Text(stringResource(R.string.onboarding_pin_button))
         }

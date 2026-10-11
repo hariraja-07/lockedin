@@ -15,6 +15,8 @@
     <string name="onboarding_body">YouTube Shorts, Instagram Reels, TikTok만 차단합니다.\nYouTube 롱폼, Instagram DM·피드는 그대로 사용할 수 있습니다.</string>
     <string name="onboarding_accessibility_button">접근성 권한 설정 열기</string>
     <string name="onboarding_overlay_button">다른 앱 위에 표시 권한 열기</string>
+    <string name="onboarding_battery_button">배터리 제한 없이 허용 (감시 서비스 유지)</string>
+    <string name="onboarding_oem_hint">Xiaomi/Huawei/Samsung/Oppo/OnePlus 기기에서는 설정 → 앱에서 \"자동 실행\"을 켜고 LockedIn을 배터리 정화에서 제외하세요. 그렇지 않으면 시스템이 감시 서비스를 종료할 수 있습니다.</string>
     <string name="onboarding_pin_button">PIN 설정하고 시작하기</string>
     <string name="onboarding_sideload_notice">Play 스토어 밖에서 설치한 경우, 설정 &gt; 접근성에서 이 앱을 켤 때\n추가 확인 절차가 필요할 수 있습니다.</string>
     <string name="onboarding_soft_lock_notice">참고: 앱 내 PIN은 이 앱의 설정 화면만 보호합니다.\n기기 설정 &gt; 접근성에서 서비스를 끄는 것 자체는 OS 정책상 어떤 앱도 막을 수 없습니다.</string>
@@ -50,6 +52,7 @@
     <string name="settings_change_pin">PIN 변경</string>
     <string name="settings_open_accessibility">접근성 설정 열기</string>
     <string name="settings_open_overlay">오버레이 권한 열기</string>
+    <string name="settings_open_battery">배터리 최적화 설정 열기</string>
     <string name="settings_per_app_title">앱별 차단 켜기/끄기</string>
 
     <string name="lockout_title">보호가 꺼져 있습니다</string>
