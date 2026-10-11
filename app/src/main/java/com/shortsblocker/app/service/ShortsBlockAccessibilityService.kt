@@ -27,6 +27,11 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
         logger = BlockEventLogger(applicationContext)
         executor = BlockActionExecutor(this, BlockOverlayController(applicationContext), logger)
         blockingPreferences = BlockingPreferences(applicationContext)
+        // Mutual supervision: whenever the system (re)binds this service, make
+        // sure the watchdog/guard service is alive too. The system restarts
+        // this service if the process dies while the service is enabled, so
+        // this also revives the watchdog after an OEM process kill.
+        BlockGuardForegroundService.start(applicationContext)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
