@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Shorts Blocker</string>
-    <string name="accessibility_service_label">Shorts Blocker detection service</string>
+    <string name="app_name">LockedIn</string>
+    <string name="accessibility_service_label">LockedIn detection service</string>
     <string name="accessibility_service_description">
         Detects and immediately blocks YouTube Shorts, Instagram Reels, and TikTok screens.
         Screen content is evaluated on-device only and never transmitted or stored anywhere.
@@ -9,7 +9,7 @@
     <string name="guard_notification_channel_name">Blocking service status</string>
     <string name="guard_notification_text">Short-form blocking is running</string>
 
-    <string name="onboarding_title">Shorts Blocker</string>
+    <string name="onboarding_title">LockedIn</string>
     <string name="onboarding_body">Only blocks YouTube Shorts, Instagram Reels, and TikTok.\nYouTube long-form videos and Instagram DMs/feed still work normally.</string>
     <string name="onboarding_accessibility_button">Open accessibility settings</string>
     <string name="onboarding_overlay_button">Open display-over-other-apps permission</string>
@@ -17,7 +17,7 @@
     <string name="onboarding_sideload_notice">If installed outside the Play Store, enabling this app under Settings &gt; Accessibility\nmay require an extra confirmation step.</string>
     <string name="onboarding_soft_lock_notice">Note: the in-app PIN only protects this app\'s Settings screen.\nNo app can prevent the service itself from being turned off under Settings &gt; Accessibility — that\'s an OS-level limit.</string>
 
-    <string name="home_title">Shorts Blocker</string>
+    <string name="home_title">LockedIn</string>
     <string name="home_status_active">Blocking active</string>
     <string name="home_status_inactive">Accessibility service is off</string>
     <string name="home_settings_button">Settings (PIN required)</string>

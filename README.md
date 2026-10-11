@@ -1,6 +1,17 @@
-# Shorts Blocker
+# LockedIn
 
-An on-device Android app that selectively blocks short-form video content — YouTube Shorts, Instagram Reels, TikTok, and Facebook Reels — while leaving everything else in those same apps untouched: long-form YouTube videos, Instagram DMs and the normal feed, Facebook Messenger and the News Feed.
+> **Fork of [`JacobX0126/shorts-blocker-android`](https://github.com/JacobX0126/shorts-blocker-android)** (Apache-2.0), hardened for stricter self-control. All credit for the original rule engine, PIN system, and accessibility detection design goes to the upstream author. See [Changes from upstream](#changes-from-upstream).
+
+An on-device Android app that selectively blocks short-form video content — **YouTube Shorts and Instagram Reels** — while leaving everything else in those same apps untouched: long-form YouTube videos, Instagram DMs, and the normal feed all still work.
+
+## Changes from upstream
+
+LockedIn starts from the upstream codebase and hardens it for a "hard block, no escape" personal-use setup:
+
+- **Rebrand** — app display name is LockedIn (package name `com.shortsblocker.app` kept for safe upgrades).
+- **Watchdog lock** (this fork's main addition) — a watchdog layer detects when the accessibility service is switched off in system Settings and raises a non-dismissible full-screen lock wall until protection is restored. *In progress — see commit history.*
+- **Default scope** — only YouTube + Instagram blocking are enabled by default; TikTok/Facebook/Snapchat rules ship in the rule file but stay off unless toggled.
+- **Planned** — battery-optimization exemption flow + OEM autostart hints; `FLAG_SECURE` on PIN/lock screens.
 
 ## Why I built this
 
