@@ -2,7 +2,7 @@
     <string name="app_name">LockedIn</string>
     <string name="accessibility_service_label">LockedIn detection service</string>
     <string name="accessibility_service_description">
-        Detects and immediately blocks YouTube Shorts, Instagram Reels, and TikTok screens.
+        Detects and immediately blocks YouTube Shorts and Instagram Reels screens.
         Screen content is evaluated on-device only and never transmitted or stored anywhere.
     </string>
     <string name="overlay_message">Short-form content blocked</string>
@@ -12,7 +12,7 @@
     <string name="guard_notification_text_lockout">Protection is OFF — accessibility service disabled</string>
 
     <string name="onboarding_title">LockedIn</string>
-    <string name="onboarding_body">Only blocks YouTube Shorts, Instagram Reels, and TikTok.\nYouTube long-form videos and Instagram DMs/feed still work normally.</string>
+    <string name="onboarding_body">Blocks YouTube Shorts and Instagram Reels.\nYouTube long-form videos and Instagram DMs/feed still work normally.</string>
     <string name="onboarding_accessibility_button">Open accessibility settings</string>
     <string name="onboarding_overlay_button">Open display-over-other-apps permission</string>
     <string name="onboarding_battery_button">Allow unrestricted battery (keeps watchdog alive)</string>

@@ -28,12 +28,25 @@ class BlockingPreferences(context: Context) {
         prefs.edit().putStringSet(KEY_DISABLED_PACKAGES, updated).apply()
     }
 
-    private fun disabledPackages(): Set<String> =
-        prefs.getStringSet(KEY_DISABLED_PACKAGES, emptySet()) ?: emptySet()
+    private fun disabledPackages(): Set<String> {
+        if (!prefs.contains(KEY_DISABLED_PACKAGES)) return DEFAULT_DISABLED_PACKAGES
+        return prefs.getStringSet(KEY_DISABLED_PACKAGES, emptySet()) ?: emptySet()
+    }
 
     companion object {
         private const val PREFS_NAME = "blocking_prefs"
         private const val KEY_MASTER_ENABLED = "master_enabled"
         private const val KEY_DISABLED_PACKAGES = "disabled_packages"
+
+        /**
+         * First-run default: only YouTube Shorts + Instagram Reels blocking are
+         * on. TikTok/Facebook/Snapchat rules ship in block_rules.json but stay
+         * off until the user opts in from Settings.
+         */
+        private val DEFAULT_DISABLED_PACKAGES = setOf(
+            "com.zhiliaoapp.musically",
+            "com.facebook.katana",
+            "com.snapchat.android",
+        )
     }
 }
