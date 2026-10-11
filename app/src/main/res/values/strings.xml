@@ -8,6 +8,8 @@
     <string name="overlay_message">Short-form content blocked</string>
     <string name="guard_notification_channel_name">Blocking service status</string>
     <string name="guard_notification_text">Short-form blocking is running</string>
+    <string name="guard_notification_text_paused">Blocking paused by user</string>
+    <string name="guard_notification_text_lockout">Protection is OFF — accessibility service disabled</string>
 
     <string name="onboarding_title">LockedIn</string>
     <string name="onboarding_body">Only blocks YouTube Shorts, Instagram Reels, and TikTok.\nYouTube long-form videos and Instagram DMs/feed still work normally.</string>

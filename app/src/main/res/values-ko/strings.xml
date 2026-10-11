@@ -8,6 +8,8 @@
     <string name="overlay_message">숏폼 콘텐츠가 차단되었습니다</string>
     <string name="guard_notification_channel_name">차단 서비스 상태</string>
     <string name="guard_notification_text">숏폼 차단이 실행 중입니다</string>
+    <string name="guard_notification_text_paused">사용자가 차단을 일시 중지했습니다</string>
+    <string name="guard_notification_text_lockout">보호가 꺼져 있습니다 — 접근성 서비스가 비활성화됨</string>
 
     <string name="onboarding_title">LockedIn</string>
     <string name="onboarding_body">YouTube Shorts, Instagram Reels, TikTok만 차단합니다.\nYouTube 롱폼, Instagram DM·피드는 그대로 사용할 수 있습니다.</string>

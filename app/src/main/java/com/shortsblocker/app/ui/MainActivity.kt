@@ -12,11 +12,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
+import com.shortsblocker.app.service.BlockGuardForegroundService
 import com.shortsblocker.app.ui.theme.ShortsBlockerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        BlockGuardForegroundService.start(applicationContext)
         val pinManager = PinManager(applicationContext)
         val blockingPreferences = BlockingPreferences(applicationContext)
 

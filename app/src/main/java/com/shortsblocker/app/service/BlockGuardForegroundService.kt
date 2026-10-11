@@ -8,27 +8,68 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
+import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.ui.MainActivity
+import com.shortsblocker.app.watchdog.WatchdogDecision
+import com.shortsblocker.app.watchdog.WatchdogMonitor
+import com.shortsblocker.app.watchdog.WatchdogState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * Persistent notification + START_STICKY so Android is less likely to kill
  * the process the accessibility service runs in, and so BootCompletedReceiver
- * has something to restart. Does no content inspection itself.
+ * has something to restart. Also runs the watchdog: if the accessibility
+ * service gets switched off in system Settings while master blocking is on,
+ * [WatchdogMonitor] detects it and (from commit 4 onward) triggers the lock
+ * wall. Does no content inspection itself.
  */
 class BlockGuardForegroundService : Service() {
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private lateinit var blockingPreferences: BlockingPreferences
+    private lateinit var notificationManager: NotificationManager
+
     override fun onCreate() {
         super.onCreate()
+        blockingPreferences = BlockingPreferences(applicationContext)
+        notificationManager = getSystemService(NotificationManager::class.java)
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        startForeground(NOTIFICATION_ID, buildNotification(WatchdogState.Protected))
+        startWatchdog()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun buildNotification(): Notification {
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
+    }
+
+    private fun startWatchdog() {
+        serviceScope.launch {
+            WatchdogMonitor(
+                currentState = {
+                    WatchdogDecision.state(
+                        masterEnabled = blockingPreferences.masterEnabled,
+                        accessibilityServiceEnabled = AccessibilityStatus.isServiceEnabled(applicationContext),
+                    )
+                },
+                onStateChange = { state ->
+                    notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
+                },
+            ).run()
+        }
+    }
+
+    private fun buildNotification(state: WatchdogState): Notification {
         val openAppIntent = PendingIntent.getActivity(
             this,
             0,
@@ -36,9 +77,15 @@ class BlockGuardForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
+        val textRes = when (state) {
+            WatchdogState.Protected -> R.string.guard_notification_text
+            WatchdogState.PausedByUser -> R.string.guard_notification_text_paused
+            WatchdogState.Lockout -> R.string.guard_notification_text_lockout
+        }
+
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.guard_notification_text))
+            .setContentText(getString(textRes))
             .setSmallIcon(R.drawable.ic_launcher)
             .setOngoing(true)
             .setContentIntent(openAppIntent)
@@ -47,17 +94,24 @@ class BlockGuardForegroundService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.guard_notification_channel_name),
             NotificationManager.IMPORTANCE_MIN,
         )
-        manager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(channel)
     }
 
     companion object {
         private const val CHANNEL_ID = "shorts_blocker_guard"
         private const val NOTIFICATION_ID = 1
+
+        /** Starts the guard/watchdog service if it is not already running. */
+        fun start(context: android.content.Context) {
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, BlockGuardForegroundService::class.java),
+            )
+        }
     }
 }
