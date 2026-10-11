@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
+import com.shortsblocker.app.overlay.LockoutOverlayController
 import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.ui.MainActivity
 import com.shortsblocker.app.watchdog.WatchdogDecision
@@ -34,11 +35,13 @@ class BlockGuardForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var blockingPreferences: BlockingPreferences
     private lateinit var notificationManager: NotificationManager
+    private lateinit var lockoutOverlay: LockoutOverlayController
 
     override fun onCreate() {
         super.onCreate()
         blockingPreferences = BlockingPreferences(applicationContext)
         notificationManager = getSystemService(NotificationManager::class.java)
+        lockoutOverlay = LockoutOverlayController(applicationContext)
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification(WatchdogState.Protected))
         startWatchdog()
@@ -64,6 +67,7 @@ class BlockGuardForegroundService : Service() {
                 },
                 onStateChange = { state ->
                     notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
+                    if (state == WatchdogState.Lockout) lockoutOverlay.show() else lockoutOverlay.hide()
                 },
             ).run()
         }

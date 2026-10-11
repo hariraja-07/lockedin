@@ -51,4 +51,8 @@
     <string name="settings_open_accessibility">Open accessibility settings</string>
     <string name="settings_open_overlay">Open overlay permission</string>
     <string name="settings_per_app_title">Per-app blocking on/off</string>
+
+    <string name="lockout_title">Protection is off</string>
+    <string name="lockout_body">LockedIn\'s accessibility service was disabled in system Settings.\n\nShort-form content is unblocked until it is restored. Re-enable \"LockedIn detection service\" under Settings → Accessibility to dismiss this screen.</string>
+    <string name="lockout_button">Open accessibility settings</string>
 </resources>
