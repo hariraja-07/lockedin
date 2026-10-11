@@ -38,7 +38,8 @@ class LockoutOverlayController(private val context: Context) {
             WindowManager.LayoutParams.MATCH_PARENT,
             overlayType(),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED,
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                WindowManager.LayoutParams.FLAG_SECURE,
             PixelFormat.OPAQUE,
         ).apply {
             gravity = Gravity.CENTER
