@@ -19,7 +19,7 @@
     <string name="onboarding_oem_hint">Xiaomi/Huawei/Samsung/Oppo/OnePlus 기기에서는 설정 → 앱에서 \"자동 실행\"을 켜고 LockedIn을 배터리 정화에서 제외하세요. 그렇지 않으면 시스템이 감시 서비스를 종료할 수 있습니다.</string>
     <string name="onboarding_pin_button">PIN 설정하고 시작하기</string>
     <string name="onboarding_sideload_notice">Play 스토어 밖에서 설치한 경우, 설정 &gt; 접근성에서 이 앱을 켤 때\n추가 확인 절차가 필요할 수 있습니다.</string>
-    <string name="onboarding_soft_lock_notice">참고: 앱 내 PIN은 이 앱의 설정 화면만 보호합니다.\n기기 설정 &gt; 접근성에서 서비스를 끄는 것 자체는 OS 정책상 어떤 앱도 막을 수 없습니다.</string>
+    <string name="onboarding_soft_lock_notice">잠금 방식: 앱 안에서 차단을 끄려면 PIN이 필요합니다. 설정 &gt; 접근성에서 서비스를 꺼도 감시 서비스가 몇 초 안에 감지해 서비스가 다시 켜질 때까지 화면을 잠금 화면으로 덮습니다.</string>
 
     <string name="home_title">LockedIn</string>
     <string name="home_status_active">차단 활성화됨</string>

@@ -9,9 +9,10 @@ An on-device Android app that selectively blocks short-form video content — **
 LockedIn starts from the upstream codebase and hardens it for a "hard block, no escape" personal-use setup:
 
 - **Rebrand** — app display name is LockedIn (package name `com.shortsblocker.app` kept for safe upgrades).
-- **Watchdog lock** (this fork's main addition) — a watchdog layer detects when the accessibility service is switched off in system Settings and raises a non-dismissible full-screen lock wall until protection is restored. *In progress — see commit history.*
+- **Watchdog lock** (this fork's main addition) — a watchdog layer detects when the accessibility service is switched off in system Settings and raises a non-dismissible full-screen lock wall until protection is restored.
 - **Default scope** — only YouTube + Instagram blocking are enabled by default; TikTok/Facebook/Snapchat rules ship in the rule file but stay off unless toggled.
-- **Planned** — battery-optimization exemption flow + OEM autostart hints; `FLAG_SECURE` on PIN/lock screens.
+- **Battery/OEM hardening** — battery-optimization exemption deep-link + OEM autostart hints so the watchdog survives aggressive task killers.
+- **FLAG_SECURE** on the PIN screens and the lock wall (no screenshots / recents previews of either).
 
 ## Why I built this
 
@@ -102,7 +103,7 @@ docs/                                  # Design decisions, technical spec, priva
 
 ## Known Limitations
 
-- No app can prevent a user from turning the accessibility service itself off under device Settings > Accessibility — that's an Android OS-level limit, not something an app can override. The in-app PIN only protects **this app's Settings screen**, and the onboarding screen tells the user that plainly. In other words, this app is designed as a soft-commitment tool for self-control, not a hard lock.
+- Android still allows the accessibility service itself to be switched off under device Settings > Accessibility — no app can prevent that. LockedIn's watchdog detects the switch within seconds and covers the screen with a lock wall until the service is re-enabled, which raises the friction a lot, but a user willing to boot into safe mode + adb (or factory reset) can still remove the app. This is a hardened self-control tool, not an enterprise MDM lock.
 - If a target app changes its internal view IDs, the corresponding rule can stop matching (this is recorded locally as `Unmatched` so it's visible rather than silent). When that happens, `block_rules.json` needs an update and the app needs to be rebuilt.
 - Facebook's block rule may have lower detection accuracy due to how its view IDs are structured (this is called out in the Settings screen).
 
