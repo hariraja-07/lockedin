@@ -60,6 +60,12 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_change_pin">Change PIN</string>
+    <string name="change_pin_title">Change PIN</string>
+    <string name="change_pin_current_label">Enter current PIN</string>
+    <string name="change_pin_current_error">Incorrect current PIN</string>
+    <string name="change_pin_new_label">New PIN</string>
+    <string name="change_pin_confirm_label">Confirm new PIN</string>
+    <string name="change_pin_save">Update PIN</string>
     <string name="settings_open_accessibility">Open accessibility settings</string>
     <string name="settings_open_overlay">Open overlay permission</string>
     <string name="settings_open_battery">Open battery optimization settings</string>

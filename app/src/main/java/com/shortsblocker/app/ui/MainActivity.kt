@@ -6,16 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.shortsblocker.app.domain.SessionLock
 import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.service.BlockGuardForegroundService
 import com.shortsblocker.app.ui.theme.ShortsBlockerTheme
 
 class MainActivity : ComponentActivity() {
+    private val sessionLock = SessionLock()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runCatching {
@@ -29,17 +35,36 @@ class MainActivity : ComponentActivity() {
         setContent {
             ShortsBlockerTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppNavGraph(pinManager = pinManager, blockingPreferences = blockingPreferences)
+                    AppNavGraph(
+                        pinManager = pinManager,
+                        blockingPreferences = blockingPreferences,
+                        sessionLock = sessionLock,
+                    )
                 }
             }
         }
     }
+
+    override fun onStop() {
+        super.onStop()
+        sessionLock.onAppBackgrounded()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        sessionLock.onAppForegrounded()
+    }
 }
 
 @Composable
-fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences) {
+fun AppNavGraph(
+    pinManager: PinManager,
+    blockingPreferences: BlockingPreferences,
+    sessionLock: SessionLock,
+) {
     val navController = rememberNavController()
     val startDestination = if (pinManager.isPinSet()) Routes.HOME else Routes.ONBOARDING
+    val isSessionUnlocked by sessionLock.unlockedFlow.collectAsState()
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.ONBOARDING) {
@@ -49,6 +74,7 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
             PinSetupScreen(
                 pinManager = pinManager,
                 onDone = {
+                    sessionLock.unlock()
                     navController.navigate(Routes.HOME) {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
@@ -58,14 +84,25 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
         composable(Routes.HOME) {
             HomeScreen(
                 blockingPreferences = blockingPreferences,
-                onOpenSettings = { navController.navigate(Routes.PIN_ENTRY) },
+                onOpenSettings = {
+                    if (isSessionUnlocked) {
+                        navController.navigate(Routes.SETTINGS)
+                    } else {
+                        navController.navigate(Routes.PIN_ENTRY)
+                    }
+                },
                 onRequestDisable = { navController.navigate(Routes.DISABLE_PIN_ENTRY) },
             )
         }
         composable(Routes.PIN_ENTRY) {
             PinEntryScreen(
                 pinManager = pinManager,
-                onSuccess = { navController.navigate(Routes.SETTINGS) },
+                onSuccess = {
+                    sessionLock.unlock()
+                    navController.navigate(Routes.SETTINGS) {
+                        popUpTo(Routes.HOME)
+                    }
+                },
                 onForgot = { navController.navigate(Routes.PIN_RECOVERY) },
             )
         }
@@ -92,10 +129,34 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
             )
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(
-                blockingPreferences = blockingPreferences,
-                onChangePin = { navController.navigate(Routes.PIN_SETUP) },
-            )
+            if (!isSessionUnlocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.PIN_ENTRY) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
+            } else {
+                SettingsScreen(
+                    blockingPreferences = blockingPreferences,
+                    onChangePin = { navController.navigate(Routes.CHANGE_PIN) },
+                )
+            }
+        }
+        composable(Routes.CHANGE_PIN) {
+            if (!isSessionUnlocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.PIN_ENTRY) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
+            } else {
+                ChangePinScreen(
+                    pinManager = pinManager,
+                    onPinChanged = {
+                        navController.popBackStack()
+                    },
+                )
+            }
         }
     }
 }
@@ -108,4 +169,5 @@ object Routes {
     const val DISABLE_PIN_ENTRY = "disable_pin_entry"
     const val PIN_RECOVERY = "pin_recovery"
     const val SETTINGS = "settings"
+    const val CHANGE_PIN = "change_pin"
 }
