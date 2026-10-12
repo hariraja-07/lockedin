@@ -38,7 +38,11 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
         // sure the watchdog/guard service is alive too. The system restarts
         // this service if the process dies while the service is enabled, so
         // this also revives the watchdog after an OEM process kill.
-        BlockGuardForegroundService.start(applicationContext)
+        runCatching {
+            BlockGuardForegroundService.start(applicationContext)
+        }.onFailure { e ->
+            Log.e("ShortsBlockService", "Failed to start guard service in onServiceConnected", e)
+        }
         ContextCompat.registerReceiver(
             this,
             debugDumpReceiver,

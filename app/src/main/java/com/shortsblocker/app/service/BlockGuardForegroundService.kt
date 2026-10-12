@@ -137,15 +137,31 @@ class BlockGuardForegroundService : Service() {
     }
 
     companion object {
+        private const val TAG = "BlockGuardService"
         private const val CHANNEL_ID = "shorts_blocker_guard"
         private const val NOTIFICATION_ID = 1
 
-        /** Starts the guard/watchdog service if it is not already running. */
-        fun start(context: android.content.Context) {
+        @Throws(Exception::class)
+        internal fun startDirect(context: android.content.Context) {
             ContextCompat.startForegroundService(
                 context,
                 Intent(context, BlockGuardForegroundService::class.java),
             )
+        }
+
+        /** Starts the guard/watchdog service if it is not already running. */
+        fun start(context: android.content.Context) {
+            try {
+                startDirect(context)
+            } catch (e: IllegalStateException) {
+                android.util.Log.w(TAG, "Foreground service start not allowed from background, scheduling retry via WorkManager", e)
+                GuardReviveWorker.schedule(context)
+            } catch (e: SecurityException) {
+                android.util.Log.e(TAG, "SecurityException starting guard service", e)
+                GuardReviveWorker.schedule(context)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Unexpected error starting guard service", e)
+            }
         }
     }
 }

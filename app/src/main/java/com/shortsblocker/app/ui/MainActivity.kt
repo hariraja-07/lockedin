@@ -18,7 +18,11 @@ import com.shortsblocker.app.ui.theme.ShortsBlockerTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        BlockGuardForegroundService.start(applicationContext)
+        runCatching {
+            BlockGuardForegroundService.start(applicationContext)
+        }.onFailure { e ->
+            android.util.Log.e("MainActivity", "Failed to start guard service in onCreate", e)
+        }
         val pinManager = PinManager(applicationContext)
         val blockingPreferences = BlockingPreferences(applicationContext)
 
