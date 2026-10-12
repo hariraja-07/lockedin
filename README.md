@@ -1,5 +1,7 @@
 # LockedIn
 
+**Block YouTube Shorts & Instagram Reels on Android — hard.** A watchdog-backed accessibility blocker: Shorts/Reels bounce you out instantly, and if anyone flips the accessibility service off in Settings, a non-dismissible lock wall takes over the screen until protection is restored.
+
 > **Fork of [`JacobX0126/shorts-blocker-android`](https://github.com/JacobX0126/shorts-blocker-android)** (Apache-2.0), hardened for stricter self-control. All credit for the original rule engine, PIN system, and accessibility detection design goes to the upstream author. See [Changes from upstream](#changes-from-upstream).
 
 An on-device Android app that selectively blocks short-form video content — **YouTube Shorts and Instagram Reels** — while leaving everything else in those same apps untouched: long-form YouTube videos, Instagram DMs, and the normal feed all still work.
