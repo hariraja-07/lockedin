@@ -1,24 +1,35 @@
 package com.shortsblocker.app.ui
 
+import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -28,15 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
 import com.shortsblocker.app.domain.IntentLauncher
-import com.shortsblocker.app.service.AccessibilityStatus
 
 @Composable
 fun OnboardingScreen(
@@ -45,18 +49,10 @@ fun OnboardingScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
     val protectionStatus by viewModel.protectionStatus.collectAsState()
-    val isAccessibilityGranted = protectionStatus.isAccessibilityGranted
-    val isOverlayGranted = protectionStatus.isOverlayGranted
-    val isBatteryGranted = protectionStatus.isBatteryExempted
-    val isNotificationGranted = protectionStatus.isNotificationGranted
 
-    val notificationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-    ) { _ ->
-        viewModel.refresh()
-    }
+    var currentStep by rememberSaveable { mutableIntStateOf(0) }
+    val totalSteps = 4
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -71,113 +67,230 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = stringResource(R.string.onboarding_title), style = MaterialTheme.typography.headlineMedium)
-        Text(text = stringResource(R.string.onboarding_body))
-        Text(text = stringResource(R.string.onboarding_sideload_notice), style = MaterialTheme.typography.bodySmall)
-        Text(text = stringResource(R.string.onboarding_soft_lock_notice), style = MaterialTheme.typography.bodySmall)
-
-        // Accessibility Permission
-        if (isAccessibilityGranted) {
-            OutlinedButton(
-                onClick = { IntentLauncher.openAccessibilitySettings(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("✓ Accessibility Service Granted", color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            Button(
-                onClick = { IntentLauncher.openAccessibilitySettings(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.onboarding_accessibility_button))
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isAccessibilityGranted) {
+        // Top: Step indicators
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
-                text = stringResource(R.string.onboarding_restricted_settings_notice),
-                style = MaterialTheme.typography.bodySmall,
+                text = "Step ${currentStep + 1} of $totalSteps",
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-
-        // Overlay Permission
-        if (isOverlayGranted) {
-            OutlinedButton(
-                onClick = { IntentLauncher.openOverlaySettings(context) },
-                modifier = Modifier.fillMaxWidth(),
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("✓ Overlay Permission Granted", color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            Button(
-                onClick = { IntentLauncher.openOverlaySettings(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.onboarding_overlay_button))
-            }
-        }
-
-        // Battery Optimization
-        if (isBatteryGranted) {
-            OutlinedButton(
-                onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("✓ Battery Exemption Granted", color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            Button(
-                onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.onboarding_battery_button))
+                for (i in 0 until totalSteps) {
+                    val active = i == currentStep
+                    val passed = i < currentStep
+                    val color = when {
+                        active -> MaterialTheme.colorScheme.primary
+                        passed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        else -> MaterialTheme.colorScheme.surfaceVariant
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(if (active) 12.dp else 8.dp)
+                            .background(color, CircleShape),
+                    )
+                }
             }
         }
 
-        // Notification Permission (Android 13+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (isNotificationGranted) {
-                OutlinedButton(
-                    onClick = { IntentLauncher.openAppNotificationSettings(context) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.onboarding_notification_granted), color = MaterialTheme.colorScheme.primary)
+        // Center Content: Wizard Step
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            when (currentStep) {
+                0 -> {
+                    // Step 1: Welcome
+                    Text(
+                        text = stringResource(R.string.onboarding_step_1_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    Text(
+                        text = stringResource(R.string.onboarding_step_1_body),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.onboarding_soft_lock_notice),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.onboarding_sideload_notice),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                1 -> {
+                    // Step 2: Accessibility Service (Required)
+                    Text(
+                        text = stringResource(R.string.onboarding_step_2_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    Text(
+                        text = stringResource(R.string.onboarding_step_2_desc),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    if (protectionStatus.isAccessibilityGranted) {
+                        OutlinedButton(
+                            onClick = { IntentLauncher.openAccessibilitySettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("✓ Accessibility Service Granted", color = MaterialTheme.colorScheme.primary)
+                        }
+                    } else {
+                        Button(
+                            onClick = { IntentLauncher.openAccessibilitySettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.onboarding_accessibility_button))
+                        }
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !protectionStatus.isAccessibilityGranted) {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                            ),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.onboarding_restricted_settings_notice),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
+                    }
+                }
+                2 -> {
+                    // Step 3: Overlay (Required)
+                    Text(
+                        text = stringResource(R.string.onboarding_step_3_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    Text(
+                        text = stringResource(R.string.onboarding_step_3_desc),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    if (protectionStatus.isOverlayGranted) {
+                        OutlinedButton(
+                            onClick = { IntentLauncher.openOverlaySettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("✓ Overlay Permission Granted", color = MaterialTheme.colorScheme.primary)
+                        }
+                    } else {
+                        Button(
+                            onClick = { IntentLauncher.openOverlaySettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.onboarding_overlay_button))
+                        }
+                    }
+                }
+                3 -> {
+                    // Step 4: Battery Optimization & OEM Autostart (Optional)
+                    Text(
+                        text = stringResource(R.string.onboarding_step_4_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    Text(
+                        text = stringResource(R.string.onboarding_step_4_desc),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    if (protectionStatus.isBatteryExempted) {
+                        OutlinedButton(
+                            onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("✓ Battery Exemption Granted", color = MaterialTheme.colorScheme.primary)
+                        }
+                    } else {
+                        Button(
+                            onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.onboarding_battery_button))
+                        }
+                    }
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.onboarding_oem_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            OutlinedButton(
+                                onClick = { IntentLauncher.openOemAutostartSettings(context) },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(R.string.onboarding_oem_button))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom Navigation Bar
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (currentStep > 0) {
+                TextButton(onClick = { currentStep-- }) {
+                    Text(stringResource(R.string.onboarding_step_back))
                 }
             } else {
-                Button(
-                    onClick = { notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.onboarding_notification_button))
+                Spacer(modifier = Modifier.size(1.dp))
+            }
+
+            when (currentStep) {
+                0 -> {
+                    Button(onClick = { currentStep++ }) {
+                        Text(stringResource(R.string.onboarding_step_next))
+                    }
+                }
+                1 -> {
+                    Button(
+                        onClick = { currentStep++ },
+                        enabled = protectionStatus.isAccessibilityGranted,
+                    ) {
+                        Text(stringResource(R.string.onboarding_step_next))
+                    }
+                }
+                2 -> {
+                    Button(
+                        onClick = { currentStep++ },
+                        enabled = protectionStatus.isOverlayGranted,
+                    ) {
+                        Text(stringResource(R.string.onboarding_step_next))
+                    }
+                }
+                3 -> {
+                    Button(onClick = onFinished) {
+                        Text(
+                            text = stringResource(R.string.onboarding_pin_button),
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
             }
-            Text(text = stringResource(R.string.onboarding_notification_hint), style = MaterialTheme.typography.bodySmall)
-        }
-
-        Text(text = stringResource(R.string.onboarding_oem_hint), style = MaterialTheme.typography.bodySmall)
-
-        OutlinedButton(
-            onClick = { IntentLauncher.openOemAutostartSettings(context) },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(R.string.onboarding_oem_button))
-        }
-
-        // Final Step: Set PIN
-        Button(
-            onClick = onFinished,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-        ) {
-            Text(
-                text = "Next: " + stringResource(R.string.onboarding_pin_button),
-                fontWeight = FontWeight.Bold,
-            )
         }
     }
 }

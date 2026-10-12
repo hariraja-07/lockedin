@@ -25,6 +25,17 @@
     <string name="onboarding_pin_button">Set up PIN and get started</string>
     <string name="onboarding_sideload_notice">If installed outside the Play Store, enabling this app under Settings &gt; Accessibility\nmay require an extra confirmation step.</string>
     <string name="onboarding_soft_lock_notice">How the hard lock works: turning blocking off inside the app requires the PIN. If the accessibility service is switched off in system Settings anyway, the watchdog notices within seconds and covers the screen with a lock wall until the service is re-enabled.</string>
+    <string name="onboarding_step_1_title">Welcome to LockedIn</string>
+    <string name="onboarding_step_1_body">LockedIn helps you break addictive short-form video loops. It strictly blocks YouTube Shorts and Instagram Reels while preserving normal search, messages, and long-form video.</string>
+    <string name="onboarding_step_2_title">Accessibility Service</string>
+    <string name="onboarding_step_2_desc">LockedIn uses an Android AccessibilityService to detect when a short-form video player opens and immediately close it.</string>
+    <string name="onboarding_step_3_title">Lockout Overlay</string>
+    <string name="onboarding_step_3_desc">LockedIn uses the Display Over Other Apps permission to cover the screen if the accessibility service is turned off in Settings without your PIN.</string>
+    <string name="onboarding_step_4_title">Background Protection</string>
+    <string name="onboarding_step_4_desc">To prevent your device from killing the watchdog in the background, allow battery optimization exemption and OEM autostart.</string>
+    <string name="onboarding_step_skip">Skip for now</string>
+    <string name="onboarding_step_next">Next</string>
+    <string name="onboarding_step_back">Back</string>
 
     <string name="home_title">LockedIn</string>
     <string name="home_status_active">Blocking active</string>
