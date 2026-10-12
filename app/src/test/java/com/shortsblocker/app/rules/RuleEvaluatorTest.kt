@@ -25,7 +25,7 @@ class RuleEvaluatorTest {
     private val instagram = PackageRule(
         packageName = "com.instagram.android",
         mode = PackageMode.PARTIAL,
-        whitelist = listOf(WhitelistRule(Regex("^direct_.*"))),
+        whitelist = listOf(WhitelistRule(Regex("^direct_.*|.*inbox.*|.*thread_.*"))),
         block = listOf(
             MatchRule(id = "ig_reels_viewer", viewIdRegex = Regex(".*clips_viewer.*")),
         ),
@@ -206,5 +206,63 @@ class RuleEvaluatorTest {
         result.visitedNodes.forEach { it.recycle() }
         assertTrue(root.recycled)
         assertTrue(child.recycled)
+    }
+
+    // --- Visibility regression: real Samsung Instagram (One UI) Reels dump ---
+    // Instagram keeps other surfaces' fragments attached to the view tree.
+    // Hidden nodes must not fire whitelist rules; visible ones must fire block.
+
+    @Test
+    fun `reels screen with hidden DM fragments attached is still blocked`() {
+        val root = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_viewer_view_pager"),
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_single_media_component"),
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_tab", contentDescription = "Reels"),
+                // pre-loaded, NOT visible on the Reels screen:
+                FakeAccessibleNode(viewId = "com.instagram.android:id/inbox_refreshable_thread_list_recyclerview", isVisibleToUser = false),
+                FakeAccessibleNode(viewId = "com.instagram.android:id/direct_share_button", isVisibleToUser = false),
+            ),
+        )
+        val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
+        assertTrue(result.decision is BlockDecision.Block)
+        assertEquals("ig_reels_viewer", (result.decision as BlockDecision.Block).ruleId)
+    }
+
+    @Test
+    fun `hidden reels nodes on the DM screen do not block`() {
+        val root = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "com.instagram.android:id/inbox_refreshable_thread_list_recyclerview"),
+                // pre-loaded, NOT visible while reading DMs:
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_viewer_view_pager", isVisibleToUser = false),
+            ),
+        )
+        val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
+        assertEquals(BlockDecision.Allow(whitelistMatched = true), result.decision)
+    }
+
+    @Test
+    fun `invisible whitelist nodes do not mask a visible reels screen`() {
+        val root = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_viewer_view_pager"),
+                FakeAccessibleNode(viewId = "direct_inbox_row", isVisibleToUser = false),
+            ),
+        )
+        val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
+        assertTrue(result.decision is BlockDecision.Block)
+    }
+
+    @Test
+    fun `invisible block nodes do not block a normal screen`() {
+        val root = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "com.instagram.android:id/feed_recycler"),
+                FakeAccessibleNode(viewId = "com.instagram.android:id/clips_viewer_view_pager", isVisibleToUser = false),
+            ),
+        )
+        val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
+        assertEquals(BlockDecision.Unmatched, result.decision)
     }
 }

@@ -70,14 +70,26 @@ class RuleEvaluator(
         return true
     }
 
-    /** Breadth-first, depth- and count-bounded snapshot of the node tree. */
+    /** Breadth-first, depth- and count-bounded snapshot of the node tree.
+     *  Invisible subtrees are skipped entirely: super-apps keep other
+     *  surfaces' fragments attached, and hidden nodes must not affect the
+     *  whitelist/block decision. If a device reports *everything* as
+     *  invisible (some OEM quirks), fall back to the full tree rather than
+     *  going blind. */
     private fun collectNodes(root: AccessibleNode): List<AccessibleNode> {
+        val visible = collectNodes(root, requireVisible = true)
+        val rootWasOnlyNode = visible.size <= 1 && root.childCount > 0
+        return if (rootWasOnlyNode) collectNodes(root, requireVisible = false) else visible
+    }
+
+    private fun collectNodes(root: AccessibleNode, requireVisible: Boolean): List<AccessibleNode> {
         val result = ArrayList<AccessibleNode>(minOf(maxNodesVisited, 64))
         val queue: ArrayDeque<Pair<AccessibleNode, Int>> = ArrayDeque()
         queue.add(root to 0)
 
         while (queue.isNotEmpty() && result.size < maxNodesVisited) {
             val (node, depth) = queue.removeFirst()
+            if (requireVisible && !node.isVisibleToUser) continue
             result.add(node)
             if (depth >= maxDepth) continue
 

@@ -31,7 +31,7 @@
       "block": [
         {
           "id": "ig_reels_viewer",
-          "viewIdRegex": ".*clips_viewer.*|.*clips_swipe.*|.*reels_viewer.*"
+          "viewIdRegex": ".*clips_viewer.*|.*clips_swipe.*|.*reels_viewer.*|.*clips_single_media_component.*"
         },
         {
           "id": "ig_reels_tab",

@@ -11,6 +11,7 @@ class AccessibilityNodeAdapter(private val node: AccessibilityNodeInfo) : Access
     override val contentDescription: String? get() = node.contentDescription?.toString()
     override val className: String? get() = node.className?.toString()
     override val childCount: Int get() = node.childCount
+    override val isVisibleToUser: Boolean get() = node.isVisibleToUser
 
     override fun getChild(index: Int): AccessibleNode? {
         val child = node.getChild(index) ?: return null
