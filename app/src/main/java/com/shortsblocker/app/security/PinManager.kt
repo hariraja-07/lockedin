@@ -62,7 +62,16 @@ class PinManager(private val context: Context) {
     fun verifyPin(pin: String): Boolean = runCatching {
         val saltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
         val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
-        HashUtils.hash(pin, HashUtils.saltFromHex(saltHex)) == storedHash
+        val salt = HashUtils.saltFromHex(saltHex)
+        val valid = HashUtils.verify(pin, salt, storedHash)
+        if (valid && HashUtils.needsUpgrade(storedHash)) {
+            val newSalt = HashUtils.randomSalt()
+            prefs.edit()
+                .putString(KEY_PIN_SALT, HashUtils.saltToHex(newSalt))
+                .putString(KEY_PIN_HASH, HashUtils.hash(pin, newSalt))
+                .apply()
+        }
+        valid
     }.getOrElse {
         keystoreCorrupted = true
         false
@@ -99,7 +108,17 @@ class PinManager(private val context: Context) {
     fun verifyRecoveryAnswer(answer: String): Boolean = runCatching {
         val saltHex = prefs.getString(KEY_RECOVERY_SALT, null) ?: return false
         val storedHash = prefs.getString(KEY_RECOVERY_HASH, null) ?: return false
-        HashUtils.hash(answer.trim().lowercase(), HashUtils.saltFromHex(saltHex)) == storedHash
+        val salt = HashUtils.saltFromHex(saltHex)
+        val normalizedAnswer = answer.trim().lowercase()
+        val valid = HashUtils.verify(normalizedAnswer, salt, storedHash)
+        if (valid && HashUtils.needsUpgrade(storedHash)) {
+            val newSalt = HashUtils.randomSalt()
+            prefs.edit()
+                .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(newSalt))
+                .putString(KEY_RECOVERY_HASH, HashUtils.hash(normalizedAnswer, newSalt))
+                .apply()
+        }
+        valid
     }.getOrElse {
         keystoreCorrupted = true
         false
