@@ -31,6 +31,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
 import com.shortsblocker.app.service.AccessibilityStatus
 
@@ -45,6 +51,20 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
         mutableStateOf(powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false)
     }
+    var isNotificationGranted by remember {
+        val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        mutableStateOf(granted)
+    }
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
+        isNotificationGranted = isGranted
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -53,6 +73,12 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 isOverlayGranted = Settings.canDrawOverlays(context)
                 val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
                 isBatteryGranted = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: false
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    isNotificationGranted = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS,
+                    ) == PackageManager.PERMISSION_GRANTED
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -144,6 +170,31 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             ) {
                 Text(stringResource(R.string.onboarding_battery_button))
             }
+        }
+
+        // Notification Permission (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (isNotificationGranted) {
+                OutlinedButton(
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.onboarding_notification_granted), color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
+                Button(
+                    onClick = { notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.onboarding_notification_button))
+                }
+            }
+            Text(text = stringResource(R.string.onboarding_notification_hint), style = MaterialTheme.typography.bodySmall)
         }
 
         Text(text = stringResource(R.string.onboarding_oem_hint), style = MaterialTheme.typography.bodySmall)

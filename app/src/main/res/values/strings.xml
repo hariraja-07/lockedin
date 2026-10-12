@@ -16,6 +16,9 @@
     <string name="onboarding_accessibility_button">Open accessibility settings</string>
     <string name="onboarding_overlay_button">Open display-over-other-apps permission</string>
     <string name="onboarding_battery_button">Allow unrestricted battery (keeps watchdog alive)</string>
+    <string name="onboarding_notification_button">Allow notification (optional)</string>
+    <string name="onboarding_notification_granted">✓ Notification Permission Allowed</string>
+    <string name="onboarding_notification_hint">Optional: If denied, LockedIn still guards and blocks normally, but the status notification stays completely silent and hidden.</string>
     <string name="onboarding_oem_hint">On Xiaomi/Huawei/Samsung/Oppo/OnePlus also enable \"Autostart\" and exclude LockedIn from battery cleaning under the phone\'s Settings → Apps, or the system may kill the watchdog.</string>
     <string name="onboarding_pin_button">Set up PIN and get started</string>
     <string name="onboarding_sideload_notice">If installed outside the Play Store, enabling this app under Settings &gt; Accessibility\nmay require an extra confirmation step.</string>
