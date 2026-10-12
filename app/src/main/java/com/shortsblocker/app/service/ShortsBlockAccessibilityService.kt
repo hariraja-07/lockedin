@@ -21,18 +21,18 @@ import com.shortsblocker.app.rules.RuleSet
 
 class ShortsBlockAccessibilityService : AccessibilityService() {
 
-    private lateinit var ruleRepository: RuleRepository
-    private lateinit var evaluator: RuleEvaluator
-    private lateinit var logger: BlockEventLogger
-    private lateinit var executor: BlockActionExecutor
-    private lateinit var blockingPreferences: BlockingPreferences
+    private var ruleRepository: RuleRepository? = null
+    private var evaluator: RuleEvaluator? = null
+    private var logger: BlockEventLogger? = null
+    private var executor: BlockActionExecutor? = null
+    private var blockingPreferences: BlockingPreferences? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         ruleRepository = RuleRepository(applicationContext)
         evaluator = RuleEvaluator()
         logger = BlockEventLogger(applicationContext)
-        executor = BlockActionExecutor(this, BlockOverlayController(applicationContext), logger)
+        executor = BlockActionExecutor(this, BlockOverlayController(applicationContext), logger!!)
         blockingPreferences = BlockingPreferences(applicationContext)
         // Mutual supervision: whenever the system (re)binds this service, make
         // sure the watchdog/guard service is alive too. The system restarts
@@ -96,38 +96,56 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        val packageName = event?.packageName?.toString() ?: return
-        if (!blockingPreferences.masterEnabled || !blockingPreferences.isPackageEnabled(packageName)) return
-        evaluateCurrentScreen(packageName)
+        try {
+            val prefs = blockingPreferences ?: return
+            if (ruleRepository == null || evaluator == null || logger == null || executor == null) return
+
+            val packageName = event?.packageName?.toString() ?: return
+            if (!prefs.masterEnabled || !prefs.isPackageEnabled(packageName)) return
+            evaluateCurrentScreen(packageName)
+        } catch (e: Exception) {
+            Log.e("ShortsBlockService", "Error handling onAccessibilityEvent", e)
+        }
     }
 
     /** Runs the full evaluation once and, if blocked, triggers the action executor. */
     private fun evaluateCurrentScreen(packageName: String): BlockDecision {
-        if (!blockingPreferences.masterEnabled || !blockingPreferences.isPackageEnabled(packageName)) {
-            return BlockDecision.Allow(whitelistMatched = false)
-        }
-        val root = rootInActiveWindow ?: return BlockDecision.Unmatched
-        val rootAdapter = AccessibilityNodeAdapter(root)
-        val ruleSet = ruleRepository.get()
+        return try {
+            val prefs = blockingPreferences ?: return BlockDecision.Allow(whitelistMatched = false)
+            val repo = ruleRepository ?: return BlockDecision.Unmatched
+            val log = logger ?: return BlockDecision.Unmatched
+            val exec = executor ?: return BlockDecision.Unmatched
 
-        val result = evaluateFor(packageName, rootAdapter, ruleSet)
-        recycleAll(result)
-
-        when (val decision = result.decision) {
-            is BlockDecision.Block -> executor.onBlockDetected(packageName, decision.ruleId) {
-                evaluateCurrentScreen(packageName) is BlockDecision.Block
+            if (!prefs.masterEnabled || !prefs.isPackageEnabled(packageName)) {
+                return BlockDecision.Allow(whitelistMatched = false)
             }
-            is BlockDecision.Unmatched -> logger.logUnmatched(packageName)
-            is BlockDecision.Allow -> Unit
+            val root = rootInActiveWindow ?: return BlockDecision.Unmatched
+            val rootAdapter = AccessibilityNodeAdapter(root)
+            val ruleSet = repo.get()
+
+            val result = evaluateFor(packageName, rootAdapter, ruleSet)
+            recycleAll(result)
+
+            when (val decision = result.decision) {
+                is BlockDecision.Block -> exec.onBlockDetected(packageName, decision.ruleId) {
+                    evaluateCurrentScreen(packageName) is BlockDecision.Block
+                }
+                is BlockDecision.Unmatched -> log.logUnmatched(packageName)
+                is BlockDecision.Allow -> Unit
+            }
+            result.decision
+        } catch (e: Exception) {
+            Log.e("ShortsBlockService", "Error evaluating current screen for $packageName", e)
+            BlockDecision.Unmatched
         }
-        return result.decision
     }
 
     private fun evaluateFor(packageName: String, root: AccessibilityNodeAdapter, ruleSet: RuleSet): EvaluationResult {
+        val ev = evaluator ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
         return if (ruleSet.browsers.containsKey(packageName)) {
-            evaluator.evaluateBrowserUrl(packageName, root, ruleSet)
+            ev.evaluateBrowserUrl(packageName, root, ruleSet)
         } else {
-            evaluator.evaluatePackage(packageName, root, ruleSet)
+            ev.evaluatePackage(packageName, root, ruleSet)
         }
     }
 
