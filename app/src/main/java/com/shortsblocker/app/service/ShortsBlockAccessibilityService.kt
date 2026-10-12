@@ -19,6 +19,8 @@ import com.shortsblocker.app.rules.RuleEvaluator
 import com.shortsblocker.app.rules.RuleRepository
 import com.shortsblocker.app.rules.RuleSet
 
+import com.shortsblocker.app.BuildConfig
+
 class ShortsBlockAccessibilityService : AccessibilityService() {
 
     private var ruleRepository: RuleRepository? = null
@@ -26,6 +28,7 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
     private var logger: BlockEventLogger? = null
     private var executor: BlockActionExecutor? = null
     private var blockingPreferences: BlockingPreferences? = null
+    private var isDebugReceiverRegistered = false
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -43,19 +46,25 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
         }.onFailure { e ->
             Log.e("ShortsBlockService", "Failed to start guard service in onServiceConnected", e)
         }
-        ContextCompat.registerReceiver(
-            this,
-            debugDumpReceiver,
-            IntentFilter(ACTION_DEBUG_DUMP),
-            ContextCompat.RECEIVER_EXPORTED,
-        )
+        if (BuildConfig.DEBUG && !isDebugReceiverRegistered) {
+            ContextCompat.registerReceiver(
+                this,
+                debugDumpReceiver,
+                IntentFilter(ACTION_DEBUG_DUMP),
+                ContextCompat.RECEIVER_EXPORTED,
+            )
+            isDebugReceiverRegistered = true
+        }
     }
 
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
         executor?.release()
-        runCatching { unregisterReceiver(debugDumpReceiver) }
+        if (isDebugReceiverRegistered) {
+            runCatching { unregisterReceiver(debugDumpReceiver) }
+            isDebugReceiverRegistered = false
+        }
         super.onDestroy()
     }
 
