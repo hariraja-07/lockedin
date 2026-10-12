@@ -44,7 +44,11 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
         composable(Routes.PIN_SETUP) {
             PinSetupScreen(
                 pinManager = pinManager,
-                onDone = { navController.navigate(Routes.HOME) { popUpTo(0) } },
+                onDone = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Routes.HOME) {
@@ -66,7 +70,9 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
                 pinManager = pinManager,
                 onSuccess = {
                     blockingPreferences.masterEnabled = false
-                    navController.navigate(Routes.HOME) { popUpTo(0) }
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 },
                 onForgot = { navController.navigate(Routes.PIN_RECOVERY) },
             )
@@ -74,7 +80,11 @@ fun AppNavGraph(pinManager: PinManager, blockingPreferences: BlockingPreferences
         composable(Routes.PIN_RECOVERY) {
             PinRecoveryScreen(
                 pinManager = pinManager,
-                onRecovered = { navController.navigate(Routes.PIN_SETUP) { popUpTo(0) } },
+                onRecovered = {
+                    navController.navigate(Routes.PIN_SETUP) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Routes.SETTINGS) {
