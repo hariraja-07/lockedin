@@ -16,46 +16,44 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shortsblocker.app.R
-import com.shortsblocker.app.logging.BlockEventLogger
 import com.shortsblocker.app.prefs.BlockingPreferences
-import com.shortsblocker.app.service.AccessibilityStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
 fun HomeScreen(
-    blockingPreferences: BlockingPreferences,
     onOpenSettings: () -> Unit,
     onRequestDisable: () -> Unit,
+    viewModel: HomeViewModel = viewModel(),
 ) {
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var isServiceEnabled by remember { mutableStateOf(AccessibilityStatus.isServiceEnabled(context)) }
-    var isMasterEnabled by remember { mutableStateOf(blockingPreferences.masterEnabled) }
+    val protectionStatus by viewModel.protectionStatus.collectAsState()
+    val isServiceEnabled = protectionStatus.isAccessibilityGranted
+    var isMasterEnabled by remember { mutableStateOf(viewModel.blockingPreferences.masterEnabled) }
     var showDisableConfirm by remember { mutableStateOf(false) }
-    val logger = remember { BlockEventLogger(context) }
-    var events by remember { mutableStateOf(logger.recentEvents()) }
+    var events by remember { mutableStateOf(viewModel.eventLogger.recentEvents()) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                isServiceEnabled = AccessibilityStatus.isServiceEnabled(context)
-                isMasterEnabled = blockingPreferences.masterEnabled
-                events = logger.recentEvents()
+                viewModel.refresh()
+                isMasterEnabled = viewModel.blockingPreferences.masterEnabled
+                events = viewModel.eventLogger.recentEvents()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -102,7 +100,7 @@ fun HomeScreen(
                 checked = isMasterEnabled,
                 onCheckedChange = { checked ->
                     if (checked) {
-                        blockingPreferences.masterEnabled = true
+                        viewModel.setMasterEnabled(true)
                         isMasterEnabled = true
                     } else {
                         showDisableConfirm = true
@@ -130,4 +128,14 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Suppress("UNUSED_PARAMETER")
+@Composable
+fun HomeScreen(
+    blockingPreferences: BlockingPreferences,
+    onOpenSettings: () -> Unit,
+    onRequestDisable: () -> Unit,
+) {
+    HomeScreen(onOpenSettings = onOpenSettings, onRequestDisable = onRequestDisable)
 }

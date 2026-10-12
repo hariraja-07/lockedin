@@ -1,10 +1,5 @@
 package com.shortsblocker.app.ui
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.PowerManager
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +14,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -42,44 +39,29 @@ import com.shortsblocker.app.domain.IntentLauncher
 import com.shortsblocker.app.service.AccessibilityStatus
 
 @Composable
-fun OnboardingScreen(onFinished: () -> Unit) {
+fun OnboardingScreen(
+    onFinished: () -> Unit,
+    viewModel: OnboardingViewModel = viewModel(),
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var isAccessibilityGranted by remember { mutableStateOf(AccessibilityStatus.isServiceEnabled(context)) }
-    var isOverlayGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
-    var isBatteryGranted by remember {
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        mutableStateOf(powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false)
-    }
-    var isNotificationGranted by remember {
-        val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-        mutableStateOf(granted)
-    }
+    val protectionStatus by viewModel.protectionStatus.collectAsState()
+    val isAccessibilityGranted = protectionStatus.isAccessibilityGranted
+    val isOverlayGranted = protectionStatus.isOverlayGranted
+    val isBatteryGranted = protectionStatus.isBatteryExempted
+    val isNotificationGranted = protectionStatus.isNotificationGranted
 
     val notificationLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-    ) { isGranted ->
-        isNotificationGranted = isGranted
+    ) { _ ->
+        viewModel.refresh()
     }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                isAccessibilityGranted = AccessibilityStatus.isServiceEnabled(context)
-                isOverlayGranted = Settings.canDrawOverlays(context)
-                val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-                isBatteryGranted = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: false
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    isNotificationGranted = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.POST_NOTIFICATIONS,
-                    ) == PackageManager.PERMISSION_GRANTED
-                }
+                viewModel.refresh()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

@@ -15,9 +15,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,8 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shortsblocker.app.R
-import com.shortsblocker.app.security.PinAttemptTracker
 import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.security.PinRecoveryTracker
 import com.shortsblocker.app.security.PinValidationResult
@@ -48,12 +50,15 @@ fun SecureFlag() {
 }
 
 @Composable
-fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
+fun PinSetupScreen(
+    onDone: () -> Unit,
+    viewModel: PinSetupViewModel = viewModel(),
+) {
     SecureFlag()
-    var pin by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
-    var question by remember { mutableStateOf("") }
-    var answer by remember { mutableStateOf("") }
+    var pin by rememberSaveable { mutableStateOf("") }
+    var confirmPin by rememberSaveable { mutableStateOf("") }
+    var question by rememberSaveable { mutableStateOf("") }
+    var answer by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
 
     val pinTooShortError = stringResource(R.string.pin_setup_error_pin_too_short)
@@ -104,9 +109,7 @@ fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
                     if (question.isBlank() || answer.isBlank()) {
                         error = missingRecoveryError
                     } else {
-                        pinManager.setPin(pin)
-                        pinManager.setRecovery(question, answer)
-                        onDone()
+                        viewModel.savePin(pin, question, answer, onDone)
                     }
                 }
             }
@@ -116,19 +119,29 @@ fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
-fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -> Unit) {
+fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
+    PinSetupScreen(onDone = onDone)
+}
+
+@Composable
+fun PinEntryScreen(
+    onSuccess: () -> Unit,
+    onForgot: () -> Unit,
+    viewModel: PinEntryViewModel = viewModel(),
+) {
     SecureFlag()
-    val context = LocalContext.current
-    val tracker = remember { PinAttemptTracker(context) }
-    var pin by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf(false) }
-    var lockoutSeconds by remember { mutableStateOf(tracker.remainingLockoutSeconds()) }
+    var pin by rememberSaveable { mutableStateOf("") }
+    val isLockedOut by viewModel.isLockedOut.collectAsState()
+    val lockoutSeconds by viewModel.remainingLockoutSeconds.collectAsState()
+    val failedAttempts by viewModel.failedAttempts.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     LaunchedEffect(lockoutSeconds) {
         if (lockoutSeconds > 0) {
             delay(1000L)
-            lockoutSeconds = tracker.remainingLockoutSeconds()
+            viewModel.updateLockoutTick()
         }
     }
 
@@ -139,19 +152,22 @@ fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -
         Text(stringResource(R.string.pin_entry_title), style = MaterialTheme.typography.headlineMedium)
         OutlinedTextField(
             value = pin,
-            onValueChange = { pin = it.filter(Char::isDigit); error = false },
+            onValueChange = {
+                pin = it.filter(Char::isDigit)
+                viewModel.clearError()
+            },
             label = { Text(stringResource(R.string.pin_entry_title)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            enabled = lockoutSeconds == 0L,
+            enabled = !isLockedOut,
         )
-        if (lockoutSeconds > 0) {
+        if (isLockedOut) {
             Text(
                 text = "Too many incorrect attempts. Try again in ${lockoutSeconds}s",
                 color = MaterialTheme.colorScheme.error,
             )
-        } else if (error) {
-            val remainingBeforeLockout = (5 - tracker.failedAttempts()).coerceAtLeast(1)
+        } else if (errorMessage != null) {
+            val remainingBeforeLockout = (5 - failedAttempts).coerceAtLeast(1)
             Text(
                 text = "Incorrect PIN ($remainingBeforeLockout attempts remaining)",
                 color = MaterialTheme.colorScheme.error,
@@ -159,22 +175,9 @@ fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -
         }
         Button(
             onClick = {
-                if (tracker.isLockedOut()) {
-                    lockoutSeconds = tracker.remainingLockoutSeconds()
-                    return@Button
-                }
-                if (pinManager.verifyPin(pin)) {
-                    tracker.recordSuccess()
-                    onSuccess()
-                } else {
-                    val wait = tracker.recordFailure()
-                    if (wait > 0) {
-                        lockoutSeconds = wait
-                    }
-                    error = true
-                }
+                viewModel.verifyPin(pin, onSuccess = onSuccess)
             },
-            enabled = lockoutSeconds == 0L && pin.isNotEmpty(),
+            enabled = !isLockedOut && pin.isNotEmpty(),
         ) {
             Text(stringResource(R.string.pin_entry_confirm))
         }
@@ -184,18 +187,29 @@ fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
-fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
+fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -> Unit) {
+    PinEntryScreen(onSuccess = onSuccess, onForgot = onForgot)
+}
+
+@Composable
+fun PinRecoveryScreen(
+    onRecovered: () -> Unit,
+    viewModel: PinRecoveryViewModel = viewModel(),
+) {
     SecureFlag()
-    var answer by remember { mutableStateOf("") }
+    var answer by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
-    val question = remember { pinManager.getRecoveryQuestion() ?: "" }
-    var cooldownSeconds by remember { mutableStateOf(pinManager.remainingRecoveryCooldownSeconds()) }
+    val question = viewModel.recoveryQuestion ?: ""
+    val isLockedOut by viewModel.isLockedOut.collectAsState()
+    val cooldownSeconds by viewModel.remainingCooldownSeconds.collectAsState()
+    val failedAttempts by viewModel.failedAttempts.collectAsState()
 
     LaunchedEffect(cooldownSeconds) {
         if (cooldownSeconds > 0) {
             delay(1000)
-            cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
+            viewModel.updateCooldownTick()
         }
     }
 
@@ -209,9 +223,9 @@ fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
             value = answer,
             onValueChange = { answer = it; error = false },
             label = { Text(stringResource(R.string.pin_recovery_answer_hint)) },
-            enabled = cooldownSeconds == 0L,
+            enabled = !isLockedOut,
         )
-        if (cooldownSeconds > 0) {
+        if (isLockedOut) {
             val hours = cooldownSeconds / 3600
             val minutes = (cooldownSeconds % 3600) / 60
             val sec = cooldownSeconds % 60
@@ -225,7 +239,7 @@ fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
                 color = MaterialTheme.colorScheme.error,
             )
         } else if (error) {
-            val remaining = (PinRecoveryTracker.MAX_ATTEMPTS - pinManager.recoveryFailedAttempts()).coerceAtLeast(1)
+            val remaining = (PinRecoveryTracker.MAX_ATTEMPTS - failedAttempts).coerceAtLeast(1)
             Text(
                 text = stringResource(R.string.pin_recovery_attempts_remaining, remaining),
                 color = MaterialTheme.colorScheme.error,
@@ -233,22 +247,21 @@ fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
         }
         Button(
             onClick = {
-                if (pinManager.isRecoveryLockedOut()) {
-                    cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
-                    return@Button
-                }
-                if (pinManager.verifyRecoveryAnswer(answer)) {
-                    onRecovered()
-                } else {
-                    error = true
-                    if (pinManager.isRecoveryLockedOut()) {
-                        cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
-                    }
-                }
+                viewModel.verifyRecoveryAnswer(
+                    answer = answer,
+                    onRecovered = onRecovered,
+                    onError = { error = true },
+                )
             },
-            enabled = cooldownSeconds == 0L && answer.isNotBlank(),
+            enabled = !isLockedOut && answer.isNotBlank(),
         ) {
             Text(stringResource(R.string.pin_recovery_confirm))
         }
     }
+}
+
+@Suppress("UNUSED_PARAMETER")
+@Composable
+fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
+    PinRecoveryScreen(onRecovered = onRecovered)
 }
