@@ -66,6 +66,9 @@ class BlockEventLogger(
     }
 
     fun clear() {
+        lastUnmatchedTimestamps.clear()
+        lastLoggedPackage = null
+        lastLoggedResult = null
         diskExecutor.execute {
             synchronized(this) {
                 prefs.edit().putString(KEY_EVENTS, "[]").apply()

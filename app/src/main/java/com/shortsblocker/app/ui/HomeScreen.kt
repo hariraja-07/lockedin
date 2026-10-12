@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,6 +25,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -37,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shortsblocker.app.R
 import com.shortsblocker.app.domain.IntentLauncher
 import com.shortsblocker.app.prefs.BlockingPreferences
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,12 +57,18 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
     val protectionStatus by viewModel.protectionStatus.collectAsState()
     val todayBlockedCount by viewModel.todayBlockedCount.collectAsState()
     val isServiceEnabled = protectionStatus.isAccessibilityGranted
     var isMasterEnabled by remember { mutableStateOf(viewModel.blockingPreferences.masterEnabled) }
     var showDisableConfirm by remember { mutableStateOf(false) }
     var events by remember { mutableStateOf(viewModel.eventLogger.recentEvents()) }
+    var showBlockedOnly by rememberSaveable { mutableStateOf(false) }
+
+    var showClearLogDialog by remember { mutableStateOf(false) }
+    var clearPinInput by remember { mutableStateOf("") }
+    var clearPinError by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -81,6 +95,65 @@ fun HomeScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDisableConfirm = false }) {
+                    Text(stringResource(R.string.home_disable_confirm_cancel))
+                }
+            },
+        )
+    }
+
+    if (showClearLogDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showClearLogDialog = false
+                clearPinInput = ""
+                clearPinError = false
+            },
+            title = { Text(stringResource(R.string.home_log_clear_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.home_log_clear_desc))
+                    OutlinedTextField(
+                        value = clearPinInput,
+                        onValueChange = {
+                            clearPinInput = it.filter(Char::isDigit)
+                            clearPinError = false
+                        },
+                        label = { Text(stringResource(R.string.pin_entry_title)) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    )
+                    if (clearPinError) {
+                        Text(stringResource(R.string.pin_entry_error), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            val valid = viewModel.verifyPin(clearPinInput)
+                            if (valid) {
+                                viewModel.clearEvents()
+                                events = viewModel.eventLogger.recentEvents()
+                                showClearLogDialog = false
+                                clearPinInput = ""
+                                clearPinError = false
+                            } else {
+                                clearPinError = true
+                            }
+                        }
+                    },
+                    enabled = clearPinInput.isNotEmpty(),
+                ) {
+                    Text(stringResource(R.string.home_log_clear_button))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showClearLogDialog = false
+                    clearPinInput = ""
+                    clearPinError = false
+                }) {
                     Text(stringResource(R.string.home_disable_confirm_cancel))
                 }
             },
@@ -223,22 +296,66 @@ fun HomeScreen(
             Text(stringResource(R.string.home_settings_button))
         }
 
-        Text(
-            text = stringResource(R.string.home_recent_events_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        if (events.isEmpty()) {
-            Text(stringResource(R.string.home_no_events))
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(events.reversed()) { event ->
-                    val timeText = remember(event.timestampMillis) {
-                        SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
-                    }
-                    Text("$timeText  ${event.packageName}  →  ${event.result}")
+        // Decision Log Header + Filter Controls
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.home_recent_events_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FilterChip(
+                    selected = !showBlockedOnly,
+                    onClick = { showBlockedOnly = false },
+                    label = { Text(stringResource(R.string.home_log_filter_all)) },
+                )
+                FilterChip(
+                    selected = showBlockedOnly,
+                    onClick = { showBlockedOnly = true },
+                    label = { Text(stringResource(R.string.home_log_filter_blocked)) },
+                )
+                TextButton(onClick = { showClearLogDialog = true }) {
+                    Text(stringResource(R.string.home_log_clear_button))
                 }
             }
         }
+
+        val filteredEvents = if (showBlockedOnly) {
+            events.filter { it.result != "UNMATCHED" }
+        } else {
+            events
+        }
+
+        if (filteredEvents.isEmpty()) {
+            Text(stringResource(R.string.home_no_events))
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(filteredEvents.reversed()) { event ->
+                    val isBlocked = event.result != "UNMATCHED"
+                    val icon = if (isBlocked) "🚫 Blocked" else "✓ Unmatched"
+                    val timeText = remember(event.timestampMillis) {
+                        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
+                    }
+                    Text(
+                        text = "$timeText  ${event.packageName}  ${event.result}  $icon",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = stringResource(R.string.home_log_unmatched_explanation),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

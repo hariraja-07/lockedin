@@ -7,6 +7,7 @@ import com.shortsblocker.app.domain.ProtectionStatus
 import com.shortsblocker.app.domain.ProtectionStatusProvider
 import com.shortsblocker.app.logging.BlockEventLogger
 import com.shortsblocker.app.prefs.BlockingPreferences
+import com.shortsblocker.app.security.PinManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +41,17 @@ class HomeViewModel(
             val count = recent.count { it.result != "UNMATCHED" }
             _todayBlockedCount.value = count
         }
+    }
+
+    val pinManager: PinManager = PinManager(application)
+
+    fun clearEvents() {
+        eventLogger.clear()
+        refresh()
+    }
+
+    suspend fun verifyPin(pin: String): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        pinManager.verifyPin(pin)
     }
 
     fun setMasterEnabled(enabled: Boolean) {

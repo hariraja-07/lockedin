@@ -58,6 +58,12 @@
     <string name="home_stats_today_blocks">Blocked today: %1$d</string>
     <string name="home_recent_events_title">Recent decision log</string>
     <string name="home_no_events">No decisions recorded yet</string>
+    <string name="home_log_filter_all">All</string>
+    <string name="home_log_filter_blocked">Blocked only</string>
+    <string name="home_log_clear_button">Clear log</string>
+    <string name="home_log_clear_title">Clear Event Log</string>
+    <string name="home_log_clear_desc">Enter your PIN to clear the decision history:</string>
+    <string name="home_log_unmatched_explanation">\"Unmatched\" means the rule engine saw neither a block nor a whitelist match — usually harmless, but may indicate a target app updated its view IDs.</string>
     <string name="home_disable_confirm_title">Turn off blocking?</string>
     <string name="home_disable_confirm_body">Turning off blocking will make short-form content visible again. PIN entry is required to continue.</string>
     <string name="home_disable_confirm_yes">Continue</string>
