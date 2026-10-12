@@ -11,15 +11,35 @@ class WatchdogMonitor(
     private val currentState: () -> WatchdogState,
     private val onStateChange: (WatchdogState) -> Unit,
     private val pollIntervalMillis: Long = DEFAULT_POLL_INTERVAL_MILLIS,
+    private val initialStartupDelayMillis: Long = 0L,
+    private val lockoutDebounceCount: Int = DEFAULT_LOCKOUT_DEBOUNCE_COUNT,
 ) {
 
     suspend fun run() {
-        var last: WatchdogState? = null
+        if (initialStartupDelayMillis > 0L) {
+            delay(initialStartupDelayMillis)
+        }
+        var activeState: WatchdogState? = null
+        var consecutiveLockoutCount = 0
+
         while (true) {
-            val state = currentState()
-            if (state != last) {
-                last = state
-                onStateChange(state)
+            val evaluated = currentState()
+
+            val targetState = if (evaluated == WatchdogState.Lockout) {
+                consecutiveLockoutCount++
+                if (consecutiveLockoutCount >= lockoutDebounceCount) {
+                    WatchdogState.Lockout
+                } else {
+                    activeState ?: WatchdogState.Protected
+                }
+            } else {
+                consecutiveLockoutCount = 0
+                evaluated
+            }
+
+            if (targetState != activeState) {
+                activeState = targetState
+                onStateChange(targetState)
             }
             delay(pollIntervalMillis)
         }
@@ -27,5 +47,6 @@ class WatchdogMonitor(
 
     companion object {
         const val DEFAULT_POLL_INTERVAL_MILLIS = 3_000L
+        const val DEFAULT_LOCKOUT_DEBOUNCE_COUNT = 2
     }
 }

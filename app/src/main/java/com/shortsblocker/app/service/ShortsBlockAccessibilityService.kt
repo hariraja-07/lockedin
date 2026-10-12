@@ -77,9 +77,17 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
 
     private fun collectViewIds(node: AccessibilityNodeInfo, out: MutableSet<String>, depth: Int) {
         if (depth > MAX_DUMP_DEPTH || out.size > MAX_DUMP_IDS) return
-        node.viewIdResourceName?.let { out.add(it) }
+        node.viewIdResourceName?.let { id ->
+            val v = if (node.isVisibleToUser) "V" else "H"
+            val s = if (node.isSelected) "S" else "-"
+            val desc = node.contentDescription?.let { " [desc=$it]" } ?: ""
+            out.add("$v:$s:$id$desc")
+        }
         for (i in 0 until node.childCount) {
-            node.getChild(i)?.let { collectViewIds(it, out, depth + 1) }
+            node.getChild(i)?.let { child ->
+                collectViewIds(child, out, depth + 1)
+                child.recycle()
+            }
         }
     }
 

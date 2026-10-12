@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
 import com.shortsblocker.app.overlay.LockoutOverlayController
 import com.shortsblocker.app.prefs.BlockingPreferences
+import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.ui.MainActivity
 import com.shortsblocker.app.watchdog.WatchdogDecision
 import com.shortsblocker.app.watchdog.WatchdogMonitor
@@ -34,12 +35,14 @@ class BlockGuardForegroundService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var blockingPreferences: BlockingPreferences
+    private lateinit var pinManager: PinManager
     private lateinit var notificationManager: NotificationManager
     private lateinit var lockoutOverlay: LockoutOverlayController
 
     override fun onCreate() {
         super.onCreate()
         blockingPreferences = BlockingPreferences(applicationContext)
+        pinManager = PinManager(applicationContext)
         notificationManager = getSystemService(NotificationManager::class.java)
         lockoutOverlay = LockoutOverlayController(applicationContext)
         createNotificationChannel()
@@ -63,12 +66,14 @@ class BlockGuardForegroundService : Service() {
                     WatchdogDecision.state(
                         masterEnabled = blockingPreferences.masterEnabled,
                         accessibilityServiceEnabled = AccessibilityStatus.isServiceEnabled(applicationContext),
+                        isPinSet = pinManager.isPinSet(),
                     )
                 },
                 onStateChange = { state ->
                     notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
                     if (state == WatchdogState.Lockout) lockoutOverlay.show() else lockoutOverlay.hide()
                 },
+                initialStartupDelayMillis = 5_000L,
             ).run()
         }
     }
@@ -102,7 +107,10 @@ class BlockGuardForegroundService : Service() {
             CHANNEL_ID,
             getString(R.string.guard_notification_channel_name),
             NotificationManager.IMPORTANCE_MIN,
-        )
+        ).apply {
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_SECRET
+        }
         notificationManager.createNotificationChannel(channel)
     }
 

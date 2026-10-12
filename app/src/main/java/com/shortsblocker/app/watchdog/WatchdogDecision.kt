@@ -24,8 +24,13 @@ sealed interface WatchdogState {
 }
 
 object WatchdogDecision {
-    fun state(masterEnabled: Boolean, accessibilityServiceEnabled: Boolean): WatchdogState = when {
+    fun state(
+        masterEnabled: Boolean,
+        accessibilityServiceEnabled: Boolean,
+        isPinSet: Boolean = true,
+    ): WatchdogState = when {
         !masterEnabled -> WatchdogState.PausedByUser
+        !isPinSet -> WatchdogState.PausedByUser
         accessibilityServiceEnabled -> WatchdogState.Protected
         else -> WatchdogState.Lockout
     }
