@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -21,15 +23,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shortsblocker.app.R
+import com.shortsblocker.app.domain.IntentLauncher
 import com.shortsblocker.app.prefs.BlockingPreferences
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,8 +47,10 @@ fun HomeScreen(
     onRequestDisable: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val protectionStatus by viewModel.protectionStatus.collectAsState()
+    val todayBlockedCount by viewModel.todayBlockedCount.collectAsState()
     val isServiceEnabled = protectionStatus.isAccessibilityGranted
     var isMasterEnabled by remember { mutableStateOf(viewModel.blockingPreferences.masterEnabled) }
     var showDisableConfirm by remember { mutableStateOf(false) }
@@ -83,42 +91,146 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(text = stringResource(R.string.home_title), style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = stringResource(R.string.home_title),
+            style = MaterialTheme.typography.headlineMedium,
+        )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(
-                    if (isServiceEnabled) R.string.home_status_active else R.string.home_status_inactive
-                ),
+        // Live Status Card
+        val (cardBg, cardFg, statusTitle, statusDesc) = when {
+            !isMasterEnabled -> Quadruple(
+                Color(0xFFFFF8E1),
+                Color(0xFFE65100),
+                stringResource(R.string.home_card_status_paused),
+                stringResource(R.string.home_card_desc_paused),
             )
-            Switch(
-                checked = isMasterEnabled,
-                onCheckedChange = { checked ->
-                    if (checked) {
-                        viewModel.setMasterEnabled(true)
-                        isMasterEnabled = true
-                    } else {
-                        showDisableConfirm = true
-                    }
-                },
-                modifier = Modifier.scale(0.75f),
+            !isServiceEnabled -> Quadruple(
+                Color(0xFFFFEBEE),
+                Color(0xFFC62828),
+                stringResource(R.string.home_card_status_lockout),
+                stringResource(R.string.home_card_desc_lockout),
+            )
+            else -> Quadruple(
+                Color(0xFFE8F5E9),
+                Color(0xFF1B5E20),
+                stringResource(R.string.home_card_status_protected),
+                stringResource(R.string.home_card_desc_protected),
             )
         }
 
-        Button(onClick = onOpenSettings) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = cardBg, contentColor = cardFg),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                    Text(statusTitle, style = MaterialTheme.typography.titleLarge)
+                    Text(statusDesc, style = MaterialTheme.typography.bodyMedium)
+                }
+                Switch(
+                    checked = isMasterEnabled,
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            viewModel.setMasterEnabled(true)
+                            isMasterEnabled = true
+                        } else {
+                            showDisableConfirm = true
+                        }
+                    },
+                )
+            }
+        }
+
+        // Today's Statistics
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.home_stats_today_blocks, todayBlockedCount),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+        }
+
+        // Missing Permissions Fix List
+        val hasMissingPermissions = !protectionStatus.isAccessibilityGranted ||
+            !protectionStatus.isOverlayGranted ||
+            !protectionStatus.isBatteryExempted
+
+        if (hasMissingPermissions) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_perm_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    if (!protectionStatus.isAccessibilityGranted) {
+                        PermissionFixRow(
+                            title = stringResource(R.string.home_perm_accessibility_title),
+                            desc = stringResource(R.string.home_perm_accessibility_desc),
+                            onFix = { IntentLauncher.openAccessibilitySettings(context) },
+                        )
+                    }
+                    if (!protectionStatus.isOverlayGranted) {
+                        PermissionFixRow(
+                            title = stringResource(R.string.home_perm_overlay_title),
+                            desc = stringResource(R.string.home_perm_overlay_desc),
+                            onFix = { IntentLauncher.openOverlaySettings(context) },
+                        )
+                    }
+                    if (!protectionStatus.isBatteryExempted) {
+                        PermissionFixRow(
+                            title = stringResource(R.string.home_perm_battery_title),
+                            desc = stringResource(R.string.home_perm_battery_desc),
+                            onFix = { IntentLauncher.openBatteryOptimizationSettings(context) },
+                        )
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = onOpenSettings,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(stringResource(R.string.home_settings_button))
         }
 
-        Text(text = stringResource(R.string.home_recent_events_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.home_recent_events_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
         if (events.isEmpty()) {
             Text(stringResource(R.string.home_no_events))
         } else {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.weight(1f)) {
                 items(events.reversed()) { event ->
                     val timeText = remember(event.timestampMillis) {
                         SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
@@ -129,6 +241,29 @@ fun HomeScreen(
         }
     }
 }
+
+@Composable
+private fun PermissionFixRow(
+    title: String,
+    desc: String,
+    onFix: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(desc, style = MaterialTheme.typography.bodySmall)
+        }
+        Button(onClick = onFix) {
+            Text(stringResource(R.string.home_perm_fix_button))
+        }
+    }
+}
+
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
