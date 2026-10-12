@@ -137,7 +137,7 @@ class LockoutOverlayController(private val context: Context) {
         }
 
         val pinInput = EditText(context).apply {
-            hint = "Enter PIN to unlock"
+            hint = context.getString(R.string.lockout_pin_hint)
             setHintTextColor(Color.GRAY)
             setTextColor(Color.WHITE)
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
@@ -146,19 +146,19 @@ class LockoutOverlayController(private val context: Context) {
         }
 
         val emergencyBtn = Button(context).apply {
-            text = "Emergency Unlock (PIN)"
+            text = context.getString(R.string.lockout_emergency_button)
             setBackgroundColor(Color.DKGRAY)
             setTextColor(Color.LTGRAY)
         }
 
         val submitPinBtn = Button(context).apply {
-            text = "Verify & Unlock"
+            text = context.getString(R.string.lockout_submit_button)
             visibility = View.GONE
             setOnClickListener {
                 val now = SystemClock.elapsedRealtime()
                 if (now < lockoutUntilMillis) {
                     val remainingSec = (lockoutUntilMillis - now) / 1000
-                    Toast.makeText(context, "Too many attempts. Wait ${remainingSec}s", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.lockout_wait_seconds, remainingSec), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
@@ -167,14 +167,14 @@ class LockoutOverlayController(private val context: Context) {
                     failedAttempts = 0
                     blockingPreferences.masterEnabled = false
                     hide()
-                    Toast.makeText(context, "Protection paused by PIN", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.lockout_paused_success), Toast.LENGTH_LONG).show()
                 } else {
                     failedAttempts++
                     if (failedAttempts >= MAX_ATTEMPTS) {
                         lockoutUntilMillis = now + ATTEMPT_LOCKOUT_MS
-                        Toast.makeText(context, "Incorrect PIN. Locked out for 30s", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.lockout_locked_out_30s), Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "Incorrect PIN (${MAX_ATTEMPTS - failedAttempts} tries left)", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.lockout_pin_tries_left, MAX_ATTEMPTS - failedAttempts), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

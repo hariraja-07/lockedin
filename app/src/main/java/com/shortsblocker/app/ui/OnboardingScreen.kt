@@ -76,7 +76,7 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Step ${currentStep + 1} of $totalSteps",
+                text = stringResource(R.string.onboarding_step_counter, currentStep + 1, totalSteps),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -151,7 +151,7 @@ fun OnboardingScreen(
                             onClick = { IntentLauncher.openAccessibilitySettings(context) },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("✓ Accessibility Service Granted", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.onboarding_accessibility_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(
@@ -190,7 +190,7 @@ fun OnboardingScreen(
                             onClick = { IntentLauncher.openOverlaySettings(context) },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("✓ Overlay Permission Granted", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.onboarding_overlay_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(
@@ -216,7 +216,7 @@ fun OnboardingScreen(
                             onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("✓ Battery Exemption Granted", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.onboarding_battery_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(

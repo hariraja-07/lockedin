@@ -163,13 +163,13 @@ fun PinEntryScreen(
         )
         if (isLockedOut) {
             Text(
-                text = "Too many incorrect attempts. Try again in ${lockoutSeconds}s",
+                text = stringResource(R.string.pin_entry_locked_out, lockoutSeconds),
                 color = MaterialTheme.colorScheme.error,
             )
         } else if (errorMessage != null) {
             val remainingBeforeLockout = (5 - failedAttempts).coerceAtLeast(1)
             Text(
-                text = "Incorrect PIN ($remainingBeforeLockout attempts remaining)",
+                text = stringResource(R.string.pin_entry_tries_left, remainingBeforeLockout),
                 color = MaterialTheme.colorScheme.error,
             )
         }

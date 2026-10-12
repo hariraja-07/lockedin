@@ -338,7 +338,7 @@ fun HomeScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(filteredEvents.reversed()) { event ->
                     val isBlocked = event.result != "UNMATCHED"
-                    val icon = if (isBlocked) "🚫 Blocked" else "✓ Unmatched"
+                    val icon = if (isBlocked) stringResource(R.string.home_log_status_blocked) else stringResource(R.string.home_log_status_unmatched)
                     val timeText = remember(event.timestampMillis) {
                         SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
                     }

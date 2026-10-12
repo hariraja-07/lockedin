@@ -79,13 +79,13 @@ fun ChangePinScreen(
             )
             if (lockoutSeconds > 0) {
                 Text(
-                    text = "Too many incorrect attempts. Try again in ${lockoutSeconds}s",
+                    text = stringResource(R.string.pin_entry_locked_out, lockoutSeconds),
                     color = MaterialTheme.colorScheme.error,
                 )
             } else if (error != null) {
                 val remaining = (5 - tracker.failedAttempts()).coerceAtLeast(1)
                 Text(
-                    text = "$error ($remaining attempts remaining)",
+                    text = stringResource(R.string.pin_entry_tries_left, remaining),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

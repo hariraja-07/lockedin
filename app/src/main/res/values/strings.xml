@@ -106,4 +106,23 @@
     <string name="lockout_title">Protection is off</string>
     <string name="lockout_body">LockedIn\'s accessibility service was disabled in system Settings.\n\nShort-form content is unblocked until it is restored. Re-enable \"LockedIn detection service\" under Settings → Accessibility to dismiss this screen.</string>
     <string name="lockout_button">Open accessibility settings</string>
+    <string name="lockout_pin_hint">Enter PIN to unlock</string>
+    <string name="lockout_emergency_button">Emergency Unlock (PIN)</string>
+    <string name="lockout_submit_button">Verify &amp; Unlock</string>
+    <string name="lockout_wait_seconds">Too many attempts. Wait %1$ds</string>
+    <string name="lockout_paused_success">Protection paused by PIN</string>
+    <string name="lockout_locked_out_30s">Incorrect PIN. Locked out for 30s</string>
+    <string name="lockout_pin_tries_left">Incorrect PIN (%1$d tries left)</string>
+    <string name="lockout_activity_body">LockedIn accessibility service was disabled in system settings. Re-enable it to unlock your screen.</string>
+    <string name="lockout_unlock_button">Unlock</string>
+
+    <string name="onboarding_step_counter">Step %1$d of %2$d</string>
+    <string name="onboarding_accessibility_granted">✓ Accessibility Service Granted</string>
+    <string name="onboarding_overlay_granted">✓ Overlay Permission Granted</string>
+    <string name="onboarding_battery_granted">✓ Battery Exemption Granted</string>
+
+    <string name="pin_entry_locked_out">Too many incorrect attempts. Try again in %1$ds</string>
+    <string name="pin_entry_tries_left">Incorrect PIN (%1$d attempts remaining)</string>
+    <string name="home_log_status_blocked">🚫 Blocked</string>
+    <string name="home_log_status_unmatched">✓ Unmatched</string>
 </resources>
