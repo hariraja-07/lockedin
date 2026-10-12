@@ -32,14 +32,15 @@ class PinAttemptTracker(
     fun recordFailure(): Long {
         val attempts = failedAttempts() + 1
         val now = timeProvider()
-        val lockoutSeconds = when {
-            attempts < 5 -> 0L
-            attempts == 5 -> 30L
-            attempts == 6 -> 60L
-            attempts == 7 -> 300L
-            attempts == 8 -> 1800L
-            else -> 3600L
-        }
+        val lockoutSeconds =
+            when {
+                attempts < 5 -> 0L
+                attempts == 5 -> 30L
+                attempts == 6 -> 60L
+                attempts == 7 -> 300L
+                attempts == 8 -> 1800L
+                else -> 3600L
+            }
 
         val lockoutUntil = if (lockoutSeconds > 0) now + (lockoutSeconds * 1000) else 0L
 

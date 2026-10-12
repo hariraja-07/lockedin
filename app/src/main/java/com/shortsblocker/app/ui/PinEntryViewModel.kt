@@ -17,7 +17,6 @@ class PinEntryViewModel(
     val pinManager: PinManager = PinManager(application),
     val tracker: PinAttemptTracker = PinAttemptTracker(application),
 ) : AndroidViewModel(application) {
-
     private val _isLockedOut = MutableStateFlow(tracker.isLockedOut())
     val isLockedOut: StateFlow<Boolean> = _isLockedOut.asStateFlow()
 
@@ -40,7 +39,10 @@ class PinEntryViewModel(
         _errorMessage.value = null
     }
 
-    fun verifyPin(pin: String, onSuccess: () -> Unit) {
+    fun verifyPin(
+        pin: String,
+        onSuccess: () -> Unit,
+    ) {
         if (tracker.isLockedOut()) {
             _isLockedOut.value = true
             _remainingLockoutSeconds.value = tracker.remainingLockoutSeconds()
@@ -48,9 +50,10 @@ class PinEntryViewModel(
         }
 
         viewModelScope.launch {
-            val valid = withContext(Dispatchers.IO) {
-                pinManager.verifyPin(pin)
-            }
+            val valid =
+                withContext(Dispatchers.IO) {
+                    pinManager.verifyPin(pin)
+                }
             if (valid) {
                 tracker.recordSuccess()
                 _failedAttempts.value = 0

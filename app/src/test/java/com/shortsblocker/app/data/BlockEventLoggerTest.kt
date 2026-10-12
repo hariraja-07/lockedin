@@ -5,7 +5,6 @@ import org.junit.Test
 import java.util.concurrent.Executor
 
 class BlockEventLoggerTest {
-
     private val directExecutor = Executor { it.run() }
     private val prefs = FakeSharedPreferences()
     private val logger = BlockEventLogger(prefs, directExecutor)

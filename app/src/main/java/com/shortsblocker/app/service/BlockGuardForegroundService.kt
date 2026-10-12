@@ -6,9 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-import android.content.pm.ServiceInfo
 import android.provider.Settings
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
@@ -37,7 +37,6 @@ import kotlinx.coroutines.withContext
  * wall. Does no content inspection itself.
  */
 class BlockGuardForegroundService : Service() {
-
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var blockingPreferences: BlockingPreferences? = null
     private var pinManager: PinManager? = null
@@ -69,7 +68,11 @@ class BlockGuardForegroundService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int = START_STICKY
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -113,18 +116,20 @@ class BlockGuardForegroundService : Service() {
     }
 
     private fun buildNotification(state: WatchdogState): Notification {
-        val openAppIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
+        val openAppIntent =
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE,
+            )
 
-        val textRes = when (state) {
-            WatchdogState.Protected -> R.string.guard_notification_text
-            WatchdogState.PausedByUser -> R.string.guard_notification_text_paused
-            WatchdogState.Lockout -> R.string.guard_notification_text_lockout
-        }
+        val textRes =
+            when (state) {
+                WatchdogState.Protected -> R.string.guard_notification_text
+                WatchdogState.PausedByUser -> R.string.guard_notification_text_paused
+                WatchdogState.Lockout -> R.string.guard_notification_text_lockout
+            }
 
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
@@ -137,14 +142,15 @@ class BlockGuardForegroundService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.guard_notification_channel_name),
-            NotificationManager.IMPORTANCE_MIN,
-        ).apply {
-            setShowBadge(false)
-            lockscreenVisibility = Notification.VISIBILITY_SECRET
-        }
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                getString(R.string.guard_notification_channel_name),
+                NotificationManager.IMPORTANCE_MIN,
+            ).apply {
+                setShowBadge(false)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
+            }
         notificationManager.createNotificationChannel(channel)
     }
 

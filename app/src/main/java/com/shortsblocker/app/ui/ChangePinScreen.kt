@@ -73,7 +73,10 @@ fun ChangePinScreen(
         if (step == 1) {
             OutlinedTextField(
                 value = currentPin,
-                onValueChange = { currentPin = it.filter(Char::isDigit); error = null },
+                onValueChange = {
+                    currentPin = it.filter(Char::isDigit)
+                    error = null
+                },
                 label = { Text(stringResource(R.string.change_pin_current_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -118,7 +121,10 @@ fun ChangePinScreen(
         } else {
             OutlinedTextField(
                 value = newPin,
-                onValueChange = { newPin = it.filter(Char::isDigit); error = null },
+                onValueChange = {
+                    newPin = it.filter(Char::isDigit)
+                    error = null
+                },
                 label = { Text(stringResource(R.string.change_pin_new_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -126,7 +132,10 @@ fun ChangePinScreen(
             )
             OutlinedTextField(
                 value = confirmNewPin,
-                onValueChange = { confirmNewPin = it.filter(Char::isDigit); error = null },
+                onValueChange = {
+                    confirmNewPin = it.filter(Char::isDigit)
+                    error = null
+                },
                 label = { Text(stringResource(R.string.change_pin_confirm_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -134,13 +143,19 @@ fun ChangePinScreen(
             )
             OutlinedTextField(
                 value = question,
-                onValueChange = { question = it; error = null },
+                onValueChange = {
+                    question = it
+                    error = null
+                },
                 label = { Text(stringResource(R.string.pin_setup_recovery_question_label)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = answer,
-                onValueChange = { answer = it; error = null },
+                onValueChange = {
+                    answer = it
+                    error = null
+                },
                 label = { Text(stringResource(R.string.pin_setup_recovery_answer_label)) },
                 modifier = Modifier.fillMaxWidth(),
             )

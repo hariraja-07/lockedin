@@ -21,7 +21,6 @@ import com.shortsblocker.app.rules.RuleEvaluator
 import com.shortsblocker.app.rules.RuleSet
 
 class ShortsBlockAccessibilityService : AccessibilityService() {
-
     private var ruleRepository: RuleRepository? = null
     private var evaluator: RuleEvaluator? = null
     private var logger: BlockEventLogger? = null
@@ -73,26 +72,34 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
      * current window to logcat under the LockedInDump tag. Used to update
      * block_rules.json when a target app changes its view IDs.
      */
-    private val debugDumpReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            Log.i(TAG_DUMP, "dump requested")
-            val root = rootInActiveWindow
-            if (root == null) {
-                Log.i(TAG_DUMP, "root is null — no accessible window right now")
-                return
-            }
-            try {
-                val ids = sortedSetOf<String>()
-                collectViewIds(root, ids, 0)
-                Log.i(TAG_DUMP, "pkg=${root.packageName} nodes=${ids.size}")
-                ids.forEach { Log.i(TAG_DUMP, it) }
-            } finally {
-                root.recycle()
+    private val debugDumpReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(
+                context: Context,
+                intent: Intent,
+            ) {
+                Log.i(TAG_DUMP, "dump requested")
+                val root = rootInActiveWindow
+                if (root == null) {
+                    Log.i(TAG_DUMP, "root is null — no accessible window right now")
+                    return
+                }
+                try {
+                    val ids = sortedSetOf<String>()
+                    collectViewIds(root, ids, 0)
+                    Log.i(TAG_DUMP, "pkg=${root.packageName} nodes=${ids.size}")
+                    ids.forEach { Log.i(TAG_DUMP, it) }
+                } finally {
+                    root.recycle()
+                }
             }
         }
-    }
 
-    private fun collectViewIds(node: AccessibilityNodeInfo, out: MutableSet<String>, depth: Int) {
+    private fun collectViewIds(
+        node: AccessibilityNodeInfo,
+        out: MutableSet<String>,
+        depth: Int,
+    ) {
         if (depth > MAX_DUMP_DEPTH || out.size > MAX_DUMP_IDS) return
         node.viewIdResourceName?.let { id ->
             val v = if (node.isVisibleToUser) "V" else "H"
@@ -141,9 +148,10 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
             val result = evaluateFor(packageName, rootAdapter, ruleSet)
             try {
                 when (val decision = result.decision) {
-                    is BlockDecision.Block -> exec.onBlockDetected(packageName, decision.ruleId) {
-                        evaluateCurrentScreen(packageName) is BlockDecision.Block
-                    }
+                    is BlockDecision.Block ->
+                        exec.onBlockDetected(packageName, decision.ruleId) {
+                            evaluateCurrentScreen(packageName) is BlockDecision.Block
+                        }
                     is BlockDecision.Unmatched -> log.logUnmatched(packageName)
                     is BlockDecision.Allow -> Unit
                 }
@@ -157,7 +165,11 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun evaluateFor(packageName: String, root: AccessibilityNodeAdapter, ruleSet: RuleSet): EvaluationResult {
+    private fun evaluateFor(
+        packageName: String,
+        root: AccessibilityNodeAdapter,
+        ruleSet: RuleSet,
+    ): EvaluationResult {
         val ev = evaluator ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
         return if (ruleSet.browsers.containsKey(packageName)) {
             ev.evaluateBrowserUrl(packageName, root, ruleSet)

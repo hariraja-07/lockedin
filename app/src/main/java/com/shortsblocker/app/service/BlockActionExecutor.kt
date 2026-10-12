@@ -20,7 +20,11 @@ class BlockActionExecutor(
     private var lastSignature: String? = null
     private var lastTriggeredAtMillis: Long = 0L
 
-    fun onBlockDetected(packageName: String, ruleId: String, isStillBlocked: () -> Boolean) {
+    fun onBlockDetected(
+        packageName: String,
+        ruleId: String,
+        isStillBlocked: () -> Boolean,
+    ) {
         val signature = "$packageName:$ruleId"
         val now = System.currentTimeMillis()
         if (signature == lastSignature && now - lastTriggeredAtMillis < DEBOUNCE_MS) return

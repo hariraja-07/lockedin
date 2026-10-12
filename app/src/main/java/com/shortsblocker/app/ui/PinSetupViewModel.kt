@@ -12,8 +12,12 @@ class PinSetupViewModel(
     application: Application,
     val pinManager: PinManager = PinManager(application),
 ) : AndroidViewModel(application) {
-
-    fun savePin(pin: String, question: String, answer: String, onDone: () -> Unit) {
+    fun savePin(
+        pin: String,
+        question: String,
+        answer: String,
+        onDone: () -> Unit,
+    ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 pinManager.setPin(pin)

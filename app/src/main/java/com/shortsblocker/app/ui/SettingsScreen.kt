@@ -32,14 +32,18 @@ import com.shortsblocker.app.data.SupportedApps
 import com.shortsblocker.app.domain.IntentLauncher
 
 @Composable
-fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> Unit) {
+fun SettingsScreen(
+    blockingPreferences: BlockingPreferences,
+    onChangePin: () -> Unit,
+) {
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium)
@@ -90,9 +94,10 @@ fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> 
         SupportedApps.ALL.forEach { app ->
             var enabled by remember { mutableStateOf(blockingPreferences.isPackageEnabled(app.packageName)) }
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 48.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 48.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -106,9 +111,10 @@ fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> 
                         enabled = checked
                         blockingPreferences.setPackageEnabled(app.packageName, checked)
                     },
-                    modifier = Modifier.semantics {
-                        contentDescription = app.displayName
-                    },
+                    modifier =
+                        Modifier.semantics {
+                            contentDescription = app.displayName
+                        },
                 )
             }
         }

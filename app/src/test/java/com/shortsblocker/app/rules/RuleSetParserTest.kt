@@ -5,8 +5,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuleSetParserTest {
-
-    private val sampleJson = """
+    private val sampleJson =
+        """
         {
           "version": 3,
           "packages": {
@@ -29,7 +29,7 @@ class RuleSetParserTest {
           },
           "browserBlockUrlPatterns": [ "youtube\\.com/shorts" ]
         }
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `parses version`() {
@@ -61,7 +61,8 @@ class RuleSetParserTest {
         assertEquals(true, parsed.requireSelected)
         assertEquals(false, parsed.requireChecked)
 
-        val compoundJson = """
+        val compoundJson =
+            """
             {
               "version": 1,
               "packages": {
@@ -79,7 +80,7 @@ class RuleSetParserTest {
                 }
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val compoundRule = RuleSetParser.parse(compoundJson).packages.getValue("com.instagram.android").block[0]
         assertEquals("ig_reels_compound", compoundRule.id)
         assertEquals(2, compoundRule.allMatch.size)

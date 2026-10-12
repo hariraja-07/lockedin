@@ -28,12 +28,17 @@ class BlockEventLogger(
     )
 
     private val lastUnmatchedTimestamps = ConcurrentHashMap<String, Long>()
+
     @Volatile
     private var lastLoggedPackage: String? = null
+
     @Volatile
     private var lastLoggedResult: String? = null
 
-    fun logBlock(packageName: String, ruleId: String) {
+    fun logBlock(
+        packageName: String,
+        ruleId: String,
+    ) {
         lastLoggedPackage = packageName
         lastLoggedResult = ruleId
         enqueueAppend(packageName, ruleId)
@@ -54,16 +59,17 @@ class BlockEventLogger(
         enqueueAppend(packageName, "UNMATCHED")
     }
 
-    fun recentEvents(limit: Int = MAX_EVENTS): List<Event> = synchronized(this) {
-        val jsonString = prefs.getString(KEY_EVENTS, "[]") ?: "[]"
-        return runCatching {
-            val array = JSONArray(jsonString)
-            (0 until array.length()).map { i ->
-                val entry = array.getJSONObject(i)
-                Event(entry.getLong("t"), entry.getString("pkg"), entry.getString("result"))
-            }.takeLast(limit)
-        }.getOrElse { emptyList() }
-    }
+    fun recentEvents(limit: Int = MAX_EVENTS): List<Event> =
+        synchronized(this) {
+            val jsonString = prefs.getString(KEY_EVENTS, "[]") ?: "[]"
+            return runCatching {
+                val array = JSONArray(jsonString)
+                (0 until array.length()).map { i ->
+                    val entry = array.getJSONObject(i)
+                    Event(entry.getLong("t"), entry.getString("pkg"), entry.getString("result"))
+                }.takeLast(limit)
+            }.getOrElse { emptyList() }
+        }
 
     fun clear() {
         lastUnmatchedTimestamps.clear()
@@ -76,16 +82,20 @@ class BlockEventLogger(
         }
     }
 
-    private fun enqueueAppend(packageName: String, result: String) {
+    private fun enqueueAppend(
+        packageName: String,
+        result: String,
+    ) {
         val now = System.currentTimeMillis()
         diskExecutor.execute {
             synchronized(this) {
                 runCatching {
                     val array = JSONArray(prefs.getString(KEY_EVENTS, "[]") ?: "[]")
-                    val entry = JSONObject()
-                        .put("t", now)
-                        .put("pkg", packageName)
-                        .put("result", result)
+                    val entry =
+                        JSONObject()
+                            .put("t", now)
+                            .put("pkg", packageName)
+                            .put("result", result)
                     array.put(entry)
 
                     val trimmed = JSONArray()

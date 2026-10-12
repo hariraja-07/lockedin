@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PinRecoveryCooldownTest {
-
     private var currentTime = 1_000_000L
     private val prefs = FakeSharedPreferences()
     private val tracker = PinRecoveryTracker(prefs, timeProvider = { currentTime })

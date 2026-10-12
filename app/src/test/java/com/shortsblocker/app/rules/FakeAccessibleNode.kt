@@ -11,7 +11,6 @@ class FakeAccessibleNode(
     override val isChecked: Boolean = false,
     private val children: List<FakeAccessibleNode> = emptyList(),
 ) : AccessibleNode {
-
     var recycleCount: Int = 0
         private set
 

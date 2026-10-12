@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PinAttemptTrackerTest {
-
     private var currentTime = 100_000L
     private val prefs = FakeSharedPreferences()
     private val tracker = PinAttemptTracker(prefs, timeProvider = { currentTime })

@@ -17,7 +17,6 @@ class PinManager(
     private val context: Context,
     private val recoveryTracker: PinRecoveryTracker = PinRecoveryTracker(context),
 ) {
-
     var keystoreCorrupted: Boolean = false
         private set
 
@@ -25,9 +24,10 @@ class PinManager(
 
     private fun initPrefs(): SharedPreferences {
         return runCatching {
-            val masterKey = MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
+            val masterKey =
+                MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
             EncryptedSharedPreferences.create(
                 context,
                 PREFS_NAME,
@@ -42,12 +42,13 @@ class PinManager(
         }
     }
 
-    fun isPinSet(): Boolean = runCatching {
-        prefs.contains(KEY_PIN_HASH)
-    }.getOrElse {
-        keystoreCorrupted = true
-        false
-    }
+    fun isPinSet(): Boolean =
+        runCatching {
+            prefs.contains(KEY_PIN_HASH)
+        }.getOrElse {
+            keystoreCorrupted = true
+            false
+        }
 
     fun setPin(pin: String) {
         val salt = HashUtils.randomSalt()
@@ -62,25 +63,29 @@ class PinManager(
         }
     }
 
-    fun verifyPin(pin: String): Boolean = runCatching {
-        val saltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
-        val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
-        val salt = HashUtils.saltFromHex(saltHex)
-        val valid = HashUtils.verify(pin, salt, storedHash)
-        if (valid && HashUtils.needsUpgrade(storedHash)) {
-            val newSalt = HashUtils.randomSalt()
-            prefs.edit()
-                .putString(KEY_PIN_SALT, HashUtils.saltToHex(newSalt))
-                .putString(KEY_PIN_HASH, HashUtils.hash(pin, newSalt))
-                .apply()
+    fun verifyPin(pin: String): Boolean =
+        runCatching {
+            val saltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
+            val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
+            val salt = HashUtils.saltFromHex(saltHex)
+            val valid = HashUtils.verify(pin, salt, storedHash)
+            if (valid && HashUtils.needsUpgrade(storedHash)) {
+                val newSalt = HashUtils.randomSalt()
+                prefs.edit()
+                    .putString(KEY_PIN_SALT, HashUtils.saltToHex(newSalt))
+                    .putString(KEY_PIN_HASH, HashUtils.hash(pin, newSalt))
+                    .apply()
+            }
+            valid
+        }.getOrElse {
+            keystoreCorrupted = true
+            false
         }
-        valid
-    }.getOrElse {
-        keystoreCorrupted = true
-        false
-    }
 
-    fun setRecovery(question: String, answer: String) {
+    fun setRecovery(
+        question: String,
+        answer: String,
+    ) {
         val salt = HashUtils.randomSalt()
         runCatching {
             prefs.edit()
@@ -94,19 +99,21 @@ class PinManager(
         }
     }
 
-    fun getRecoveryQuestion(): String? = runCatching {
-        prefs.getString(KEY_RECOVERY_QUESTION, null)
-    }.getOrElse {
-        keystoreCorrupted = true
-        null
-    }
+    fun getRecoveryQuestion(): String? =
+        runCatching {
+            prefs.getString(KEY_RECOVERY_QUESTION, null)
+        }.getOrElse {
+            keystoreCorrupted = true
+            null
+        }
 
-    fun hasRecovery(): Boolean = runCatching {
-        prefs.contains(KEY_RECOVERY_HASH)
-    }.getOrElse {
-        keystoreCorrupted = true
-        false
-    }
+    fun hasRecovery(): Boolean =
+        runCatching {
+            prefs.contains(KEY_RECOVERY_HASH)
+        }.getOrElse {
+            keystoreCorrupted = true
+            false
+        }
 
     fun isRecoveryLockedOut(): Boolean = recoveryTracker.isRecoveryLockedOut()
 
@@ -120,30 +127,31 @@ class PinManager(
 
     fun clearRecoveryFailures() = recoveryTracker.clearRecoveryFailures()
 
-    fun verifyRecoveryAnswer(answer: String): Boolean = runCatching {
-        if (isRecoveryLockedOut()) return false
-        val saltHex = prefs.getString(KEY_RECOVERY_SALT, null) ?: return false
-        val storedHash = prefs.getString(KEY_RECOVERY_HASH, null) ?: return false
-        val salt = HashUtils.saltFromHex(saltHex)
-        val normalizedAnswer = answer.trim().lowercase()
-        val valid = HashUtils.verify(normalizedAnswer, salt, storedHash)
-        if (valid) {
-            clearRecoveryFailures()
-            if (HashUtils.needsUpgrade(storedHash)) {
-                val newSalt = HashUtils.randomSalt()
-                prefs.edit()
-                    .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(newSalt))
-                    .putString(KEY_RECOVERY_HASH, HashUtils.hash(normalizedAnswer, newSalt))
-                    .apply()
+    fun verifyRecoveryAnswer(answer: String): Boolean =
+        runCatching {
+            if (isRecoveryLockedOut()) return false
+            val saltHex = prefs.getString(KEY_RECOVERY_SALT, null) ?: return false
+            val storedHash = prefs.getString(KEY_RECOVERY_HASH, null) ?: return false
+            val salt = HashUtils.saltFromHex(saltHex)
+            val normalizedAnswer = answer.trim().lowercase()
+            val valid = HashUtils.verify(normalizedAnswer, salt, storedHash)
+            if (valid) {
+                clearRecoveryFailures()
+                if (HashUtils.needsUpgrade(storedHash)) {
+                    val newSalt = HashUtils.randomSalt()
+                    prefs.edit()
+                        .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(newSalt))
+                        .putString(KEY_RECOVERY_HASH, HashUtils.hash(normalizedAnswer, newSalt))
+                        .apply()
+                }
+            } else {
+                recordRecoveryFailure()
             }
-        } else {
-            recordRecoveryFailure()
+            valid
+        }.getOrElse {
+            keystoreCorrupted = true
+            false
         }
-        valid
-    }.getOrElse {
-        keystoreCorrupted = true
-        false
-    }
 
     fun resetCorruptedStorage(): Boolean {
         return runCatching {

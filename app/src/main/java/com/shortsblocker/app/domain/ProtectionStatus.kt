@@ -19,8 +19,9 @@ data class ProtectionStatus(
         get() = isAccessibilityGranted && isOverlayGranted && isMasterBlockingEnabled && isPinSet
 
     val missingRequiredPermissions: List<PermissionRequirement>
-        get() = buildList {
-            if (!isAccessibilityGranted) add(PermissionRequirement.ACCESSIBILITY)
-            if (!isOverlayGranted) add(PermissionRequirement.OVERLAY)
-        }
+        get() =
+            buildList {
+                if (!isAccessibilityGranted) add(PermissionRequirement.ACCESSIBILITY)
+                if (!isOverlayGranted) add(PermissionRequirement.OVERLAY)
+            }
 }

@@ -9,7 +9,6 @@ import com.shortsblocker.app.rules.RuleSetParser
  * only (no remote fetch) — see docs/DECISIONS.md for why.
  */
 class RuleRepository(private val context: Context) {
-
     @Volatile
     private var cached: RuleSet? = null
 

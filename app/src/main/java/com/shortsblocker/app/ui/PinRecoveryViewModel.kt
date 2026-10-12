@@ -15,7 +15,6 @@ class PinRecoveryViewModel(
     application: Application,
     val pinManager: PinManager = PinManager(application),
 ) : AndroidViewModel(application) {
-
     val recoveryQuestion: String? = pinManager.getRecoveryQuestion()
 
     private val _isLockedOut = MutableStateFlow(pinManager.isRecoveryLockedOut())
@@ -33,7 +32,11 @@ class PinRecoveryViewModel(
         _isLockedOut.value = remaining > 0
     }
 
-    fun verifyRecoveryAnswer(answer: String, onRecovered: () -> Unit, onError: () -> Unit) {
+    fun verifyRecoveryAnswer(
+        answer: String,
+        onRecovered: () -> Unit,
+        onError: () -> Unit,
+    ) {
         if (pinManager.isRecoveryLockedOut()) {
             _isLockedOut.value = true
             _remainingCooldownSeconds.value = pinManager.remainingRecoveryCooldownSeconds()
@@ -41,9 +44,10 @@ class PinRecoveryViewModel(
         }
 
         viewModelScope.launch {
-            val valid = withContext(Dispatchers.IO) {
-                pinManager.verifyRecoveryAnswer(answer)
-            }
+            val valid =
+                withContext(Dispatchers.IO) {
+                    pinManager.verifyRecoveryAnswer(answer)
+                }
             if (valid) {
                 _failedAttempts.value = 0
                 _isLockedOut.value = false

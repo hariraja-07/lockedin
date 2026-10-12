@@ -1,11 +1,9 @@
 package com.shortsblocker.app.security
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PinValidatorTest {
-
     @Test
     fun `short pin returns TooShort`() {
         val result = PinValidator.validate("12", "12")

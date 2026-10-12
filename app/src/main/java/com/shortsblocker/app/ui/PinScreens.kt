@@ -77,7 +77,10 @@ fun PinSetupScreen(
 
         OutlinedTextField(
             value = pin,
-            onValueChange = { pin = it.filter(Char::isDigit); error = null },
+            onValueChange = {
+                pin = it.filter(Char::isDigit)
+                error = null
+            },
             label = { Text(stringResource(R.string.pin_setup_title)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -85,7 +88,10 @@ fun PinSetupScreen(
         )
         OutlinedTextField(
             value = confirmPin,
-            onValueChange = { confirmPin = it.filter(Char::isDigit); error = null },
+            onValueChange = {
+                confirmPin = it.filter(Char::isDigit)
+                error = null
+            },
             label = { Text(stringResource(R.string.pin_setup_confirm_label)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -93,13 +99,19 @@ fun PinSetupScreen(
         )
         OutlinedTextField(
             value = question,
-            onValueChange = { question = it; error = null },
+            onValueChange = {
+                question = it
+                error = null
+            },
             label = { Text(stringResource(R.string.pin_setup_recovery_question_label)) },
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = answer,
-            onValueChange = { answer = it; error = null },
+            onValueChange = {
+                answer = it
+                error = null
+            },
             label = { Text(stringResource(R.string.pin_setup_recovery_answer_label)) },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -130,7 +142,10 @@ fun PinSetupScreen(
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
-fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
+fun PinSetupScreen(
+    pinManager: PinManager,
+    onDone: () -> Unit,
+) {
     PinSetupScreen(onDone = onDone)
 }
 
@@ -203,7 +218,11 @@ fun PinEntryScreen(
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
-fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -> Unit) {
+fun PinEntryScreen(
+    pinManager: PinManager,
+    onSuccess: () -> Unit,
+    onForgot: () -> Unit,
+) {
     PinEntryScreen(onSuccess = onSuccess, onForgot = onForgot)
 }
 
@@ -235,7 +254,10 @@ fun PinRecoveryScreen(
         Text(question)
         OutlinedTextField(
             value = answer,
-            onValueChange = { answer = it; error = false },
+            onValueChange = {
+                answer = it
+                error = false
+            },
             label = { Text(stringResource(R.string.pin_recovery_answer_hint)) },
             enabled = !isLockedOut,
             modifier = Modifier.fillMaxWidth(),
@@ -244,11 +266,12 @@ fun PinRecoveryScreen(
             val hours = cooldownSeconds / 3600
             val minutes = (cooldownSeconds % 3600) / 60
             val sec = cooldownSeconds % 60
-            val timeFormatted = when {
-                hours > 0 -> "${hours}h ${minutes}m"
-                minutes > 0 -> "${minutes}m ${sec}s"
-                else -> "${sec}s"
-            }
+            val timeFormatted =
+                when {
+                    hours > 0 -> "${hours}h ${minutes}m"
+                    minutes > 0 -> "${minutes}m ${sec}s"
+                    else -> "${sec}s"
+                }
             Text(
                 text = stringResource(R.string.pin_recovery_cooldown_error, timeFormatted),
                 color = MaterialTheme.colorScheme.error,
@@ -278,6 +301,9 @@ fun PinRecoveryScreen(
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
-fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
+fun PinRecoveryScreen(
+    pinManager: PinManager,
+    onRecovered: () -> Unit,
+) {
     PinRecoveryScreen(onRecovered = onRecovered)
 }

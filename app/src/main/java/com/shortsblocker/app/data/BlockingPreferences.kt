@@ -10,7 +10,6 @@ import android.content.Context
  * confirmation + PIN, but that's enforced by the caller, not here.
  */
 class BlockingPreferences(context: Context) {
-
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     var masterEnabled: Boolean
@@ -19,10 +18,12 @@ class BlockingPreferences(context: Context) {
             prefs.edit().putBoolean(KEY_MASTER_ENABLED, value).apply()
         }
 
-    fun isPackageEnabled(packageName: String): Boolean =
-        !disabledPackages().contains(packageName)
+    fun isPackageEnabled(packageName: String): Boolean = !disabledPackages().contains(packageName)
 
-    fun setPackageEnabled(packageName: String, enabled: Boolean) {
+    fun setPackageEnabled(
+        packageName: String,
+        enabled: Boolean,
+    ) {
         val updated = HashSet(disabledPackages())
         if (enabled) updated.remove(packageName) else updated.add(packageName)
         prefs.edit().putStringSet(KEY_DISABLED_PACKAGES, updated).apply()
@@ -43,10 +44,11 @@ class BlockingPreferences(context: Context) {
          * on. TikTok/Facebook/Snapchat rules ship in block_rules.json but stay
          * off until the user opts in from Settings.
          */
-        private val DEFAULT_DISABLED_PACKAGES = setOf(
-            "com.zhiliaoapp.musically",
-            "com.facebook.katana",
-            "com.snapchat.android",
-        )
+        private val DEFAULT_DISABLED_PACKAGES =
+            setOf(
+                "com.zhiliaoapp.musically",
+                "com.facebook.katana",
+                "com.snapchat.android",
+            )
     }
 }

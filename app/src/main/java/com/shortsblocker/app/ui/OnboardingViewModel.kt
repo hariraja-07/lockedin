@@ -10,7 +10,6 @@ class OnboardingViewModel(
     application: Application,
     private val protectionStatusProvider: ProtectionStatusProvider = ProtectionStatusProvider(application),
 ) : AndroidViewModel(application) {
-
     val protectionStatus: StateFlow<ProtectionStatus> = protectionStatusProvider.status
 
     init {

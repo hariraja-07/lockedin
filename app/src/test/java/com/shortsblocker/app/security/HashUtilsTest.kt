@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HashUtilsTest {
-
     @Test
     fun `same value and salt produce same hash`() {
         val salt = HashUtils.randomSalt()

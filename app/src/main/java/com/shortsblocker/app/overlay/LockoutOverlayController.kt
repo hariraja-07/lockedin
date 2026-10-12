@@ -26,7 +26,6 @@ import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 
 class LockoutOverlayController(private val context: Context) {
-
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val mainHandler = Handler(Looper.getMainLooper())
     private var currentView: LinearLayout? = null
@@ -44,17 +43,18 @@ class LockoutOverlayController(private val context: Context) {
         if (SystemClock.elapsedRealtime() < temporaryGraceUntilMillis) return
         if (currentView != null) return
         val view = buildView()
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            overlayType(),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_SECURE,
-            PixelFormat.OPAQUE,
-        ).apply {
-            gravity = Gravity.CENTER
-        }
+        val params =
+            WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                overlayType(),
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                PixelFormat.OPAQUE,
+            ).apply {
+                gravity = Gravity.CENTER
+            }
         try {
             windowManager.addView(view, params)
             currentView = view
@@ -100,85 +100,98 @@ class LockoutOverlayController(private val context: Context) {
     private fun buildView(): LinearLayout {
         val pad = (24 * context.resources.displayMetrics.density).toInt()
 
-        val title = TextView(context).apply {
-            text = context.getString(R.string.lockout_title)
-            setTextColor(Color.WHITE)
-            textSize = 24f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-        }
-        val body = TextView(context).apply {
-            text = context.getString(R.string.lockout_body)
-            setTextColor(Color.LTGRAY)
-            textSize = 15f
-            gravity = Gravity.CENTER
-            setPadding(0, pad, 0, pad)
-        }
+        val title =
+            TextView(context).apply {
+                text = context.getString(R.string.lockout_title)
+                setTextColor(Color.WHITE)
+                textSize = 24f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+            }
+        val body =
+            TextView(context).apply {
+                text = context.getString(R.string.lockout_body)
+                setTextColor(Color.LTGRAY)
+                textSize = 15f
+                gravity = Gravity.CENTER
+                setPadding(0, pad, 0, pad)
+            }
 
         // Open Settings button: provides a 60-second grace window so user can interact with Settings
-        val button = Button(context).apply {
-            text = context.getString(R.string.lockout_button)
-            setOnClickListener {
-                temporaryGraceUntilMillis = SystemClock.elapsedRealtime() + SETTINGS_GRACE_MS
-                hide()
-                runCatching {
-                    context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    })
-                }
-            }
-        }
-
-        // Emergency PIN exit container
-        val pinContainer = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(0, pad, 0, 0)
-        }
-
-        val pinInput = EditText(context).apply {
-            hint = context.getString(R.string.lockout_pin_hint)
-            setHintTextColor(Color.GRAY)
-            setTextColor(Color.WHITE)
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-            gravity = Gravity.CENTER
-            visibility = View.GONE
-        }
-
-        val emergencyBtn = Button(context).apply {
-            text = context.getString(R.string.lockout_emergency_button)
-            setBackgroundColor(Color.DKGRAY)
-            setTextColor(Color.LTGRAY)
-        }
-
-        val submitPinBtn = Button(context).apply {
-            text = context.getString(R.string.lockout_submit_button)
-            visibility = View.GONE
-            setOnClickListener {
-                val now = SystemClock.elapsedRealtime()
-                if (now < lockoutUntilMillis) {
-                    val remainingSec = (lockoutUntilMillis - now) / 1000
-                    Toast.makeText(context, context.getString(R.string.lockout_wait_seconds, remainingSec), Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val enteredPin = pinInput.text.toString()
-                if (pinManager.verifyPin(enteredPin)) {
-                    failedAttempts = 0
-                    blockingPreferences.masterEnabled = false
+        val button =
+            Button(context).apply {
+                text = context.getString(R.string.lockout_button)
+                setOnClickListener {
+                    temporaryGraceUntilMillis = SystemClock.elapsedRealtime() + SETTINGS_GRACE_MS
                     hide()
-                    Toast.makeText(context, context.getString(R.string.lockout_paused_success), Toast.LENGTH_LONG).show()
-                } else {
-                    failedAttempts++
-                    if (failedAttempts >= MAX_ATTEMPTS) {
-                        lockoutUntilMillis = now + ATTEMPT_LOCKOUT_MS
-                        Toast.makeText(context, context.getString(R.string.lockout_locked_out_30s), Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, context.getString(R.string.lockout_pin_tries_left, MAX_ATTEMPTS - failedAttempts), Toast.LENGTH_SHORT).show()
+                    runCatching {
+                        context.startActivity(
+                            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            },
+                        )
                     }
                 }
             }
-        }
+
+        // Emergency PIN exit container
+        val pinContainer =
+            LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(0, pad, 0, 0)
+            }
+
+        val pinInput =
+            EditText(context).apply {
+                hint = context.getString(R.string.lockout_pin_hint)
+                setHintTextColor(Color.GRAY)
+                setTextColor(Color.WHITE)
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+                gravity = Gravity.CENTER
+                visibility = View.GONE
+            }
+
+        val emergencyBtn =
+            Button(context).apply {
+                text = context.getString(R.string.lockout_emergency_button)
+                setBackgroundColor(Color.DKGRAY)
+                setTextColor(Color.LTGRAY)
+            }
+
+        val submitPinBtn =
+            Button(context).apply {
+                text = context.getString(R.string.lockout_submit_button)
+                visibility = View.GONE
+                setOnClickListener {
+                    val now = SystemClock.elapsedRealtime()
+                    if (now < lockoutUntilMillis) {
+                        val remainingSec = (lockoutUntilMillis - now) / 1000
+                        Toast.makeText(context, context.getString(R.string.lockout_wait_seconds, remainingSec), Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    val enteredPin = pinInput.text.toString()
+                    if (pinManager.verifyPin(enteredPin)) {
+                        failedAttempts = 0
+                        blockingPreferences.masterEnabled = false
+                        hide()
+                        Toast.makeText(context, context.getString(R.string.lockout_paused_success), Toast.LENGTH_LONG).show()
+                    } else {
+                        failedAttempts++
+                        if (failedAttempts >= MAX_ATTEMPTS) {
+                            lockoutUntilMillis = now + ATTEMPT_LOCKOUT_MS
+                            Toast.makeText(context, context.getString(R.string.lockout_locked_out_30s), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.lockout_pin_tries_left, MAX_ATTEMPTS - failedAttempts),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
+                }
+            }
 
         emergencyBtn.setOnClickListener {
             emergencyBtn.visibility = View.GONE

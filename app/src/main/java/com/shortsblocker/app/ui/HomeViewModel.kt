@@ -19,7 +19,6 @@ class HomeViewModel(
     val blockingPreferences: BlockingPreferences = BlockingPreferences(application),
     val eventLogger: BlockEventLogger = BlockEventLogger(application),
 ) : AndroidViewModel(application) {
-
     val protectionStatus: StateFlow<ProtectionStatus> = protectionStatusProvider.status
 
     private val _todayBlockedCount = MutableStateFlow(0)
@@ -50,9 +49,10 @@ class HomeViewModel(
         refresh()
     }
 
-    suspend fun verifyPin(pin: String): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-        pinManager.verifyPin(pin)
-    }
+    suspend fun verifyPin(pin: String): Boolean =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            pinManager.verifyPin(pin)
+        }
 
     fun setMasterEnabled(enabled: Boolean) {
         blockingPreferences.masterEnabled = enabled

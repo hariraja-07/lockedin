@@ -45,7 +45,6 @@ import com.shortsblocker.app.service.AccessibilityStatus
 import com.shortsblocker.app.ui.theme.ShortsBlockerTheme
 
 class LockoutActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         @Suppress("DEPRECATION")
@@ -104,10 +103,11 @@ fun LockoutContent(
     val invalidPinMessage = stringResource(R.string.pin_entry_error)
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F0F12))
-            .padding(32.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0F0F12))
+                .padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(

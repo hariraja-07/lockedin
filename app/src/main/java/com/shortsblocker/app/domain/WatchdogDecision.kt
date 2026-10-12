@@ -28,10 +28,11 @@ object WatchdogDecision {
         masterEnabled: Boolean,
         accessibilityServiceEnabled: Boolean,
         isPinSet: Boolean = true,
-    ): WatchdogState = when {
-        !masterEnabled -> WatchdogState.PausedByUser
-        !isPinSet -> WatchdogState.PausedByUser
-        accessibilityServiceEnabled -> WatchdogState.Protected
-        else -> WatchdogState.Lockout
-    }
+    ): WatchdogState =
+        when {
+            !masterEnabled -> WatchdogState.PausedByUser
+            !isPinSet -> WatchdogState.PausedByUser
+            accessibilityServiceEnabled -> WatchdogState.Protected
+            else -> WatchdogState.Lockout
+        }
 }

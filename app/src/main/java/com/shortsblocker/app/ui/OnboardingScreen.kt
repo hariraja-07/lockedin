@@ -56,19 +56,21 @@ fun OnboardingScreen(
     val totalSteps = 4
 
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refresh()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    viewModel.refresh()
+                }
             }
-        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         // Top: Step indicators
@@ -89,15 +91,17 @@ fun OnboardingScreen(
                 for (i in 0 until totalSteps) {
                     val active = i == currentStep
                     val passed = i < currentStep
-                    val color = when {
-                        active -> MaterialTheme.colorScheme.primary
-                        passed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                        else -> MaterialTheme.colorScheme.surfaceVariant
-                    }
+                    val color =
+                        when {
+                            active -> MaterialTheme.colorScheme.primary
+                            passed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
                     Box(
-                        modifier = Modifier
-                            .size(if (active) 12.dp else 8.dp)
-                            .background(color, CircleShape),
+                        modifier =
+                            Modifier
+                                .size(if (active) 12.dp else 8.dp)
+                                .background(color, CircleShape),
                     )
                 }
             }
@@ -105,10 +109,11 @@ fun OnboardingScreen(
 
         // Center Content: Wizard Step
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when (currentStep) {
@@ -164,9 +169,10 @@ fun OnboardingScreen(
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !protectionStatus.isAccessibilityGranted) {
                         Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
-                            ),
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                                ),
                         ) {
                             Text(
                                 text = stringResource(R.string.onboarding_restricted_settings_notice),

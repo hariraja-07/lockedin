@@ -11,10 +11,14 @@ class RuleEvaluator(
     private val maxNodesVisited: Int = 500,
     private val maxDepth: Int = 60,
 ) {
-
-    fun evaluatePackage(packageName: String, root: AccessibleNode, ruleSet: RuleSet): EvaluationResult {
-        val packageRule = ruleSet.packages[packageName]
-            ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
+    fun evaluatePackage(
+        packageName: String,
+        root: AccessibleNode,
+        ruleSet: RuleSet,
+    ): EvaluationResult {
+        val packageRule =
+            ruleSet.packages[packageName]
+                ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
         if (packageRule.mode == PackageMode.FULL) {
             return EvaluationResult(BlockDecision.Block("${packageName}_full_block"), listOf(root))
         }
@@ -28,13 +32,14 @@ class RuleEvaluator(
         }
 
         for (rule in packageRule.block) {
-            val isMatch = if (rule.allMatch.isNotEmpty()) {
-                rule.allMatch.all { subRule ->
-                    nodes.any { node -> matches(node, subRule) }
-                } && (!hasNodeConditions(rule) || nodes.any { node -> matches(node, rule.copy(allMatch = emptyList())) })
-            } else {
-                nodes.any { node -> matches(node, rule) }
-            }
+            val isMatch =
+                if (rule.allMatch.isNotEmpty()) {
+                    rule.allMatch.all { subRule ->
+                        nodes.any { node -> matches(node, subRule) }
+                    } && (!hasNodeConditions(rule) || nodes.any { node -> matches(node, rule.copy(allMatch = emptyList())) })
+                } else {
+                    nodes.any { node -> matches(node, rule) }
+                }
             if (isMatch) {
                 return EvaluationResult(BlockDecision.Block(rule.id), nodes)
             }
@@ -43,21 +48,28 @@ class RuleEvaluator(
         return EvaluationResult(BlockDecision.Unmatched, nodes)
     }
 
-    fun evaluateBrowserUrl(packageName: String, root: AccessibleNode, ruleSet: RuleSet): EvaluationResult {
-        val browserRule = ruleSet.browsers[packageName]
-            ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
+    fun evaluateBrowserUrl(
+        packageName: String,
+        root: AccessibleNode,
+        ruleSet: RuleSet,
+    ): EvaluationResult {
+        val browserRule =
+            ruleSet.browsers[packageName]
+                ?: return EvaluationResult(BlockDecision.Unmatched, listOf(root))
         val nodes = collectNodes(root)
-        val urlBarNode = nodes.firstOrNull { node ->
-            node.viewId != null && browserRule.urlBarViewIdRegex.containsMatchIn(node.viewId!!)
-        } ?: return EvaluationResult(BlockDecision.Unmatched, nodes)
+        val urlBarNode =
+            nodes.firstOrNull { node ->
+                node.viewId != null && browserRule.urlBarViewIdRegex.containsMatchIn(node.viewId!!)
+            } ?: return EvaluationResult(BlockDecision.Unmatched, nodes)
 
         val urlText = urlBarNode.text ?: return EvaluationResult(BlockDecision.Unmatched, nodes)
         val matchedPattern = ruleSet.browserBlockUrlPatterns.firstOrNull { it.containsMatchIn(urlText) }
-        val decision = if (matchedPattern != null) {
-            BlockDecision.Block("browser_url_${matchedPattern.pattern}")
-        } else {
-            BlockDecision.Unmatched
-        }
+        val decision =
+            if (matchedPattern != null) {
+                BlockDecision.Block("browser_url_${matchedPattern.pattern}")
+            } else {
+                BlockDecision.Unmatched
+            }
         return EvaluationResult(decision, nodes)
     }
 
@@ -68,7 +80,10 @@ class RuleEvaluator(
             rule.requireSelected != null ||
             rule.requireChecked != null
 
-    private fun matches(node: AccessibleNode, rule: MatchRule): Boolean {
+    private fun matches(
+        node: AccessibleNode,
+        rule: MatchRule,
+    ): Boolean {
         if (!hasNodeConditions(rule)) return false
 
         if (rule.viewIdRegex != null) {
@@ -105,7 +120,10 @@ class RuleEvaluator(
         return if (rootWasOnlyNode) collectNodes(root, requireVisible = false) else visible
     }
 
-    private fun collectNodes(root: AccessibleNode, requireVisible: Boolean): List<AccessibleNode> {
+    private fun collectNodes(
+        root: AccessibleNode,
+        requireVisible: Boolean,
+    ): List<AccessibleNode> {
         val result = ArrayList<AccessibleNode>(minOf(maxNodesVisited, 64))
         val queue: ArrayDeque<Pair<AccessibleNode, Int>> = ArrayDeque()
         queue.add(root to 0)

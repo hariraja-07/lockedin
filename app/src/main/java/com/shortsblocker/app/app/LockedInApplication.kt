@@ -6,7 +6,6 @@ import android.util.Log
 import com.shortsblocker.app.BuildConfig
 
 class LockedInApplication : Application() {
-
     override fun onCreate() {
         super.onCreate()
         setupStrictMode()
@@ -41,7 +40,8 @@ class LockedInApplication : Application() {
             try {
                 // Log exception type and message only — strictly NO personal data, screen content, or sensitive info
                 Log.e(TAG, "Uncaught exception in thread ${thread.name}: ${throwable.javaClass.simpleName}: ${throwable.message}")
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
 
             defaultHandler?.uncaughtException(thread, throwable)
         }

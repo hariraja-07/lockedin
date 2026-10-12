@@ -5,7 +5,6 @@ import android.view.accessibility.AccessibilityNodeInfo
 
 /** Wraps a real [AccessibilityNodeInfo] so [RuleEvaluator] never touches the Android SDK. */
 class AccessibilityNodeAdapter(private val node: AccessibilityNodeInfo) : AccessibleNode {
-
     override val viewId: String? get() = node.viewIdResourceName
     override val text: String? get() = node.text?.toString()
     override val contentDescription: String? get() = node.contentDescription?.toString()

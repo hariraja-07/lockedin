@@ -17,7 +17,6 @@ class GuardReviveWorker(
     appContext: Context,
     workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
-
     override suspend fun doWork(): Result {
         Log.i(TAG, "GuardReviveWorker executing to start BlockGuardForegroundService")
         return runCatching {
@@ -36,9 +35,10 @@ class GuardReviveWorker(
 
         fun schedule(context: Context) {
             runCatching {
-                val request = OneTimeWorkRequestBuilder<GuardReviveWorker>()
-                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                    .build()
+                val request =
+                    OneTimeWorkRequestBuilder<GuardReviveWorker>()
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                        .build()
 
                 WorkManager.getInstance(context)
                     .enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)

@@ -14,7 +14,6 @@ class WatchdogMonitor(
     private val initialStartupDelayMillis: Long = 0L,
     private val lockoutDebounceCount: Int = DEFAULT_LOCKOUT_DEBOUNCE_COUNT,
 ) {
-
     suspend fun run() {
         if (initialStartupDelayMillis > 0L) {
             delay(initialStartupDelayMillis)
@@ -25,17 +24,18 @@ class WatchdogMonitor(
         while (true) {
             val evaluated = currentState()
 
-            val targetState = if (evaluated == WatchdogState.Lockout) {
-                consecutiveLockoutCount++
-                if (consecutiveLockoutCount >= lockoutDebounceCount) {
-                    WatchdogState.Lockout
+            val targetState =
+                if (evaluated == WatchdogState.Lockout) {
+                    consecutiveLockoutCount++
+                    if (consecutiveLockoutCount >= lockoutDebounceCount) {
+                        WatchdogState.Lockout
+                    } else {
+                        activeState ?: WatchdogState.Protected
+                    }
                 } else {
-                    activeState ?: WatchdogState.Protected
+                    consecutiveLockoutCount = 0
+                    evaluated
                 }
-            } else {
-                consecutiveLockoutCount = 0
-                evaluated
-            }
 
             if (targetState != activeState) {
                 activeState = targetState

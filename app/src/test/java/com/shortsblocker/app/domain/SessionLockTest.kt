@@ -5,7 +5,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SessionLockTest {
-
     private var currentTime = 1_000_000L
     private val lock = SessionLock(timeProvider = { currentTime }, timeoutMs = 30_000L)
 

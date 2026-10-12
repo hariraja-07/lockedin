@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ProtectionStatusProvider(private val context: Context) {
-
     private val blockingPreferences = BlockingPreferences(context)
     private val pinManager = PinManager(context)
     private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
@@ -26,12 +25,16 @@ class ProtectionStatusProvider(private val context: Context) {
     val status: StateFlow<ProtectionStatus> = _status.asStateFlow()
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val contentObserver = object : ContentObserver(mainHandler) {
-        override fun onChange(selfChange: Boolean, uri: Uri?) {
-            super.onChange(selfChange, uri)
-            refresh()
+    private val contentObserver =
+        object : ContentObserver(mainHandler) {
+            override fun onChange(
+                selfChange: Boolean,
+                uri: Uri?,
+            ) {
+                super.onChange(selfChange, uri)
+                refresh()
+            }
         }
-    }
 
     private var isObserverRegistered = false
 
@@ -63,14 +66,15 @@ class ProtectionStatusProvider(private val context: Context) {
         val accessibility = AccessibilityStatus.isServiceEnabled(context)
         val overlay = Settings.canDrawOverlays(context)
         val battery = powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false
-        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.POST_NOTIFICATIONS,
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
+        val notification =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
         val master = blockingPreferences.masterEnabled
         val pin = pinManager.isPinSet()
 

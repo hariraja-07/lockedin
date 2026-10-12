@@ -2,6 +2,7 @@ package com.shortsblocker.app.rules
 
 sealed class BlockDecision {
     data class Block(val ruleId: String) : BlockDecision()
+
     data class Allow(val whitelistMatched: Boolean) : BlockDecision()
 
     /**

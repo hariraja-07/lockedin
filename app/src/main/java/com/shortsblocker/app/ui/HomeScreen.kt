@@ -74,13 +74,14 @@ fun HomeScreen(
     var clearPinError by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refresh()
-                isMasterEnabled = viewModel.blockingPreferences.masterEnabled
-                events = viewModel.eventLogger.recentEvents()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    viewModel.refresh()
+                    isMasterEnabled = viewModel.blockingPreferences.masterEnabled
+                    events = viewModel.eventLogger.recentEvents()
+                }
             }
-        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -175,9 +176,10 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
@@ -186,35 +188,40 @@ fun HomeScreen(
         )
 
         // Live Status Card
-        val (cardBg, cardFg, statusTitle, statusDesc) = when {
-            !isMasterEnabled -> Quadruple(
-                Color(0xFFFFF8E1),
-                Color(0xFFE65100),
-                stringResource(R.string.home_card_status_paused),
-                stringResource(R.string.home_card_desc_paused),
-            )
-            !isServiceEnabled -> Quadruple(
-                Color(0xFFFFEBEE),
-                Color(0xFFC62828),
-                stringResource(R.string.home_card_status_lockout),
-                stringResource(R.string.home_card_desc_lockout),
-            )
-            else -> Quadruple(
-                Color(0xFFE8F5E9),
-                Color(0xFF1B5E20),
-                stringResource(R.string.home_card_status_protected),
-                stringResource(R.string.home_card_desc_protected),
-            )
-        }
+        val (cardBg, cardFg, statusTitle, statusDesc) =
+            when {
+                !isMasterEnabled ->
+                    Quadruple(
+                        Color(0xFFFFF8E1),
+                        Color(0xFFE65100),
+                        stringResource(R.string.home_card_status_paused),
+                        stringResource(R.string.home_card_desc_paused),
+                    )
+                !isServiceEnabled ->
+                    Quadruple(
+                        Color(0xFFFFEBEE),
+                        Color(0xFFC62828),
+                        stringResource(R.string.home_card_status_lockout),
+                        stringResource(R.string.home_card_desc_lockout),
+                    )
+                else ->
+                    Quadruple(
+                        Color(0xFFE8F5E9),
+                        Color(0xFF1B5E20),
+                        stringResource(R.string.home_card_status_protected),
+                        stringResource(R.string.home_card_desc_protected),
+                    )
+            }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = cardBg, contentColor = cardFg),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -232,9 +239,10 @@ fun HomeScreen(
                             showDisableConfirm = true
                         }
                     },
-                    modifier = Modifier.semantics {
-                        contentDescription = statusTitle
-                    },
+                    modifier =
+                        Modifier.semantics {
+                            contentDescription = statusTitle
+                        },
                 )
             }
         }
@@ -245,9 +253,10 @@ fun HomeScreen(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -259,21 +268,24 @@ fun HomeScreen(
         }
 
         // Missing Permissions Fix List
-        val hasMissingPermissions = !protectionStatus.isAccessibilityGranted ||
-            !protectionStatus.isOverlayGranted ||
-            !protectionStatus.isBatteryExempted
+        val hasMissingPermissions =
+            !protectionStatus.isAccessibilityGranted ||
+                !protectionStatus.isOverlayGranted ||
+                !protectionStatus.isBatteryExempted
 
         if (hasMissingPermissions) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                ),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                    ),
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
@@ -348,11 +360,12 @@ fun HomeScreen(
             }
         }
 
-        val filteredEvents = if (showBlockedOnly) {
-            events.filter { it.result != "UNMATCHED" }
-        } else {
-            events
-        }
+        val filteredEvents =
+            if (showBlockedOnly) {
+                events.filter { it.result != "UNMATCHED" }
+            } else {
+                events
+            }
 
         if (filteredEvents.isEmpty()) {
             Text(stringResource(R.string.home_no_events))
@@ -360,10 +373,18 @@ fun HomeScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(filteredEvents.reversed()) { event ->
                     val isBlocked = event.result != "UNMATCHED"
-                    val icon = if (isBlocked) stringResource(R.string.home_log_status_blocked) else stringResource(R.string.home_log_status_unmatched)
-                    val timeText = remember(event.timestampMillis) {
-                        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
-                    }
+                    val icon =
+                        if (isBlocked) {
+                            stringResource(
+                                R.string.home_log_status_blocked,
+                            )
+                        } else {
+                            stringResource(R.string.home_log_status_unmatched)
+                        }
+                    val timeText =
+                        remember(event.timestampMillis) {
+                            SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(event.timestampMillis))
+                        }
                     Text(
                         text = "$timeText  ${event.packageName}  ${event.result}  $icon",
                         style = MaterialTheme.typography.bodySmall,
