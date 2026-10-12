@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
+import com.shortsblocker.app.security.PinAttemptTracker
 import com.shortsblocker.app.security.PinManager
+import kotlinx.coroutines.delay
 
 /**
  * Blocks screenshots and recents-previews of whatever screen it is called
@@ -98,8 +101,18 @@ fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
 @Composable
 fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -> Unit) {
     SecureFlag()
+    val context = LocalContext.current
+    val tracker = remember { PinAttemptTracker(context) }
     var pin by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
+    var lockoutSeconds by remember { mutableStateOf(tracker.remainingLockoutSeconds()) }
+
+    LaunchedEffect(lockoutSeconds) {
+        if (lockoutSeconds > 0) {
+            delay(1000L)
+            lockoutSeconds = tracker.remainingLockoutSeconds()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -112,13 +125,39 @@ fun PinEntryScreen(pinManager: PinManager, onSuccess: () -> Unit, onForgot: () -
             label = { Text(stringResource(R.string.pin_entry_title)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            enabled = lockoutSeconds == 0L,
         )
-        if (error) {
-            Text(stringResource(R.string.pin_entry_error), color = MaterialTheme.colorScheme.error)
+        if (lockoutSeconds > 0) {
+            Text(
+                text = "Too many incorrect attempts. Try again in ${lockoutSeconds}s",
+                color = MaterialTheme.colorScheme.error,
+            )
+        } else if (error) {
+            val remainingBeforeLockout = (5 - tracker.failedAttempts()).coerceAtLeast(1)
+            Text(
+                text = "Incorrect PIN ($remainingBeforeLockout attempts remaining)",
+                color = MaterialTheme.colorScheme.error,
+            )
         }
-        Button(onClick = {
-            if (pinManager.verifyPin(pin)) onSuccess() else error = true
-        }) {
+        Button(
+            onClick = {
+                if (tracker.isLockedOut()) {
+                    lockoutSeconds = tracker.remainingLockoutSeconds()
+                    return@Button
+                }
+                if (pinManager.verifyPin(pin)) {
+                    tracker.recordSuccess()
+                    onSuccess()
+                } else {
+                    val wait = tracker.recordFailure()
+                    if (wait > 0) {
+                        lockoutSeconds = wait
+                    }
+                    error = true
+                }
+            },
+            enabled = lockoutSeconds == 0L && pin.isNotEmpty(),
+        ) {
             Text(stringResource(R.string.pin_entry_confirm))
         }
         TextButton(onClick = onForgot) {
