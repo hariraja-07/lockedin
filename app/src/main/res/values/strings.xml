@@ -39,10 +39,13 @@
 
     <string name="pin_setup_title">Set PIN</string>
     <string name="pin_setup_body">Enter a PIN of 4+ digits to protect the Settings screen</string>
+    <string name="pin_setup_confirm_label">Confirm PIN</string>
     <string name="pin_setup_recovery_question_label">Recovery question (used if you forget your PIN)</string>
     <string name="pin_setup_recovery_answer_label">Recovery answer</string>
     <string name="pin_setup_confirm">Save</string>
     <string name="pin_setup_error_pin_too_short">PIN must be at least 4 digits</string>
+    <string name="pin_setup_error_mismatch">PINs do not match</string>
+    <string name="pin_setup_error_trivial">This PIN is too easy to guess (avoid sequences or repeated digits)</string>
     <string name="pin_setup_error_missing_recovery">Enter a recovery question and answer</string>
     <string name="pin_entry_title">Enter PIN</string>
     <string name="pin_entry_confirm">Confirm</string>

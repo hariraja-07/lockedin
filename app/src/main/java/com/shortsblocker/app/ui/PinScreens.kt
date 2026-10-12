@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
 import com.shortsblocker.app.security.PinAttemptTracker
 import com.shortsblocker.app.security.PinManager
+import com.shortsblocker.app.security.PinValidationResult
+import com.shortsblocker.app.security.PinValidator
 import kotlinx.coroutines.delay
 
 /**
@@ -48,9 +50,15 @@ fun SecureFlag() {
 fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
     SecureFlag()
     var pin by remember { mutableStateOf("") }
+    var confirmPin by remember { mutableStateOf("") }
     var question by remember { mutableStateOf("") }
     var answer by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+
+    val pinTooShortError = stringResource(R.string.pin_setup_error_pin_too_short)
+    val mismatchError = stringResource(R.string.pin_setup_error_mismatch)
+    val trivialError = stringResource(R.string.pin_setup_error_trivial)
+    val missingRecoveryError = stringResource(R.string.pin_setup_error_missing_recovery)
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -61,35 +69,44 @@ fun PinSetupScreen(pinManager: PinManager, onDone: () -> Unit) {
 
         OutlinedTextField(
             value = pin,
-            onValueChange = { pin = it.filter(Char::isDigit) },
+            onValueChange = { pin = it.filter(Char::isDigit); error = null },
             label = { Text(stringResource(R.string.pin_setup_title)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
         )
         OutlinedTextField(
+            value = confirmPin,
+            onValueChange = { confirmPin = it.filter(Char::isDigit); error = null },
+            label = { Text(stringResource(R.string.pin_setup_confirm_label)) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        )
+        OutlinedTextField(
             value = question,
-            onValueChange = { question = it },
+            onValueChange = { question = it; error = null },
             label = { Text(stringResource(R.string.pin_setup_recovery_question_label)) },
         )
         OutlinedTextField(
             value = answer,
-            onValueChange = { answer = it },
+            onValueChange = { answer = it; error = null },
             label = { Text(stringResource(R.string.pin_setup_recovery_answer_label)) },
         )
 
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-        val pinTooShortError = stringResource(R.string.pin_setup_error_pin_too_short)
-        val missingRecoveryError = stringResource(R.string.pin_setup_error_missing_recovery)
-
         Button(onClick = {
-            when {
-                pin.length < 4 -> error = pinTooShortError
-                question.isBlank() || answer.isBlank() -> error = missingRecoveryError
-                else -> {
-                    pinManager.setPin(pin)
-                    pinManager.setRecovery(question, answer)
-                    onDone()
+            when (PinValidator.validate(pin, confirmPin)) {
+                is PinValidationResult.TooShort -> error = pinTooShortError
+                is PinValidationResult.Mismatch -> error = mismatchError
+                is PinValidationResult.TrivialPin -> error = trivialError
+                is PinValidationResult.Valid -> {
+                    if (question.isBlank() || answer.isBlank()) {
+                        error = missingRecoveryError
+                    } else {
+                        pinManager.setPin(pin)
+                        pinManager.setRecovery(question, answer)
+                        onDone()
+                    }
                 }
             }
         }) {
