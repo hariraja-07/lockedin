@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.domain.SessionLock
-import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.service.BlockGuardForegroundService
 import com.shortsblocker.app.ui.theme.ShortsBlockerTheme

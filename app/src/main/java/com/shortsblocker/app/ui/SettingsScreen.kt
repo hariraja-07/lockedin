@@ -27,9 +27,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
+import com.shortsblocker.app.data.BlockingPreferences
+import com.shortsblocker.app.data.SupportedApps
 import com.shortsblocker.app.domain.IntentLauncher
-import com.shortsblocker.app.prefs.BlockingPreferences
-import com.shortsblocker.app.prefs.SupportedApps
 
 @Composable
 fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> Unit) {

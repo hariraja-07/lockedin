@@ -3,7 +3,7 @@ package com.shortsblocker.app.service
 import android.accessibilityservice.AccessibilityService
 import android.os.Handler
 import android.os.Looper
-import com.shortsblocker.app.logging.BlockEventLogger
+import com.shortsblocker.app.data.BlockEventLogger
 import com.shortsblocker.app.overlay.BlockOverlayController
 
 /**

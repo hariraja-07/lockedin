@@ -1,6 +1,6 @@
 package com.shortsblocker.app.security
 
-import com.shortsblocker.app.logging.FakeSharedPreferences
+import com.shortsblocker.app.data.FakeSharedPreferences
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

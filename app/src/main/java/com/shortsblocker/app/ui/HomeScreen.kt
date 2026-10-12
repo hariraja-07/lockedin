@@ -45,8 +45,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shortsblocker.app.R
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.domain.IntentLauncher
-import com.shortsblocker.app.prefs.BlockingPreferences
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -1,6 +1,8 @@
-package com.shortsblocker.app.rules
+package com.shortsblocker.app.data
 
 import android.content.Context
+import com.shortsblocker.app.rules.RuleSet
+import com.shortsblocker.app.rules.RuleSetParser
 
 /**
  * Loads the bundled block_rules.json. Rules ship inside the app resources

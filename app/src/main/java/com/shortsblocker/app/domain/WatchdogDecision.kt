@@ -1,4 +1,4 @@
-package com.shortsblocker.app.watchdog
+package com.shortsblocker.app.domain
 
 /**
  * Pure decision logic for the watchdog. Given the two inputs it cares about,

@@ -1,4 +1,4 @@
-package com.shortsblocker.app.watchdog
+package com.shortsblocker.app.domain
 
 import kotlinx.coroutines.delay
 

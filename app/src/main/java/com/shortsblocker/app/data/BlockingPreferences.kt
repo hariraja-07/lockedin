@@ -1,4 +1,4 @@
-package com.shortsblocker.app.prefs
+package com.shortsblocker.app.data
 
 import android.content.Context
 

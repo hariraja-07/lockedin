@@ -9,17 +9,16 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.content.ContextCompat
-import com.shortsblocker.app.logging.BlockEventLogger
+import com.shortsblocker.app.BuildConfig
+import com.shortsblocker.app.data.BlockEventLogger
+import com.shortsblocker.app.data.BlockingPreferences
+import com.shortsblocker.app.data.RuleRepository
 import com.shortsblocker.app.overlay.BlockOverlayController
-import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.rules.AccessibilityNodeAdapter
 import com.shortsblocker.app.rules.BlockDecision
 import com.shortsblocker.app.rules.EvaluationResult
 import com.shortsblocker.app.rules.RuleEvaluator
-import com.shortsblocker.app.rules.RuleRepository
 import com.shortsblocker.app.rules.RuleSet
-
-import com.shortsblocker.app.BuildConfig
 
 class ShortsBlockAccessibilityService : AccessibilityService() {
 

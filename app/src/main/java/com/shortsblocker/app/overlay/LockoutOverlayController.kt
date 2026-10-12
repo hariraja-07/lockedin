@@ -22,7 +22,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.shortsblocker.app.R
-import com.shortsblocker.app.prefs.BlockingPreferences
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 
 class LockoutOverlayController(private val context: Context) {

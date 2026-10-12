@@ -1,8 +1,9 @@
-package com.shortsblocker.app
+package com.shortsblocker.app.app
 
 import android.app.Application
 import android.os.StrictMode
 import android.util.Log
+import com.shortsblocker.app.BuildConfig
 
 class LockedInApplication : Application() {
 

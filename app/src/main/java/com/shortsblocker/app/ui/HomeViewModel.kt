@@ -3,10 +3,10 @@ package com.shortsblocker.app.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.shortsblocker.app.data.BlockEventLogger
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.domain.ProtectionStatus
 import com.shortsblocker.app.domain.ProtectionStatusProvider
-import com.shortsblocker.app.logging.BlockEventLogger
-import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

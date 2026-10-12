@@ -9,7 +9,7 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
-import com.shortsblocker.app.prefs.BlockingPreferences
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.service.AccessibilityStatus
 import kotlinx.coroutines.flow.MutableStateFlow

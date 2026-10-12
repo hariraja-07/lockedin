@@ -1,4 +1,4 @@
-package com.shortsblocker.app.logging
+package com.shortsblocker.app.data
 
 import android.content.Context
 import android.content.SharedPreferences

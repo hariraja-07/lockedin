@@ -38,8 +38,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shortsblocker.app.R
+import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.domain.IntentLauncher
-import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
 import com.shortsblocker.app.service.AccessibilityStatus
 import com.shortsblocker.app.ui.theme.ShortsBlockerTheme

@@ -1,4 +1,4 @@
-package com.shortsblocker.app.prefs
+package com.shortsblocker.app.data
 
 data class SupportedApp(val packageName: String, val displayName: String, val note: String? = null)
 

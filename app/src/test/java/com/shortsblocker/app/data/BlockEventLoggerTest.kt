@@ -1,4 +1,4 @@
-package com.shortsblocker.app.logging
+package com.shortsblocker.app.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
