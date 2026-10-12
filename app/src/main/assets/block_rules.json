@@ -36,7 +36,8 @@
         {
           "id": "ig_reels_tab",
           "viewIdRegex": ".*clips_tab.*|.*tab_avatar.*|.*tab_bar.*",
-          "requireContentDescRegex": "(?i)reels"
+          "requireContentDescRegex": "(?i)reels",
+          "requireSelected": true
         }
       ]
     },

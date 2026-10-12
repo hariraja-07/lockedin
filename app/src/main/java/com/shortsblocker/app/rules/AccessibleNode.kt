@@ -19,6 +19,8 @@ interface AccessibleNode {
      * must not trigger whitelist or block rules.
      */
     val isVisibleToUser: Boolean get() = true
+    val isSelected: Boolean get() = false
+    val isChecked: Boolean get() = false
 
     fun getChild(index: Int): AccessibleNode?
 

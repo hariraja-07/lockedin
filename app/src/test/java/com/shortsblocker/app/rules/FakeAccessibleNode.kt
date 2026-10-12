@@ -7,6 +7,8 @@ class FakeAccessibleNode(
     override val contentDescription: String? = null,
     override val className: String? = null,
     override val isVisibleToUser: Boolean = true,
+    override val isSelected: Boolean = false,
+    override val isChecked: Boolean = false,
     private val children: List<FakeAccessibleNode> = emptyList(),
 ) : AccessibleNode {
 

@@ -67,6 +67,12 @@ class RuleEvaluator(
             val desc = node.contentDescription ?: return false
             if (!required.containsMatchIn(desc)) return false
         }
+        rule.requireSelected?.let { required ->
+            if (node.isSelected != required) return false
+        }
+        rule.requireChecked?.let { required ->
+            if (node.isChecked != required) return false
+        }
         return true
     }
 

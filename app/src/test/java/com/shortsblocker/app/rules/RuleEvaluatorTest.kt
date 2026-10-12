@@ -265,4 +265,52 @@ class RuleEvaluatorTest {
         val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
         assertEquals(BlockDecision.Unmatched, result.decision)
     }
+
+    @Test
+    fun `tab rule requiring isSelected matches only when node isSelected is true`() {
+        val pkgRule = PackageRule(
+            packageName = "com.example.app",
+            mode = PackageMode.PARTIAL,
+            block = listOf(
+                MatchRule(id = "selected_tab", viewIdRegex = Regex(".*tab_reels.*"), requireSelected = true),
+            ),
+        )
+        val customRuleSet = RuleSet(1, mapOf(pkgRule.packageName to pkgRule), emptyMap(), emptyList())
+
+        val unselectedRoot = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "tab_reels", isSelected = false)),
+        )
+        assertEquals(BlockDecision.Unmatched, evaluator.evaluatePackage("com.example.app", unselectedRoot, customRuleSet).decision)
+
+        val selectedRoot = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "tab_reels", isSelected = true)),
+        )
+        val decision = evaluator.evaluatePackage("com.example.app", selectedRoot, customRuleSet).decision
+        assertTrue(decision is BlockDecision.Block)
+        assertEquals("selected_tab", (decision as BlockDecision.Block).ruleId)
+    }
+
+    @Test
+    fun `rule requiring isChecked matches only when node isChecked is true`() {
+        val pkgRule = PackageRule(
+            packageName = "com.example.app",
+            mode = PackageMode.PARTIAL,
+            block = listOf(
+                MatchRule(id = "checked_node", viewIdRegex = Regex(".*toggle.*"), requireChecked = true),
+            ),
+        )
+        val customRuleSet = RuleSet(1, mapOf(pkgRule.packageName to pkgRule), emptyMap(), emptyList())
+
+        val uncheckedRoot = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "toggle", isChecked = false)),
+        )
+        assertEquals(BlockDecision.Unmatched, evaluator.evaluatePackage("com.example.app", uncheckedRoot, customRuleSet).decision)
+
+        val checkedRoot = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "toggle", isChecked = true)),
+        )
+        val decision = evaluator.evaluatePackage("com.example.app", checkedRoot, customRuleSet).decision
+        assertTrue(decision is BlockDecision.Block)
+        assertEquals("checked_node", (decision as BlockDecision.Block).ruleId)
+    }
 }

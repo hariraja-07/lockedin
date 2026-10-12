@@ -39,6 +39,8 @@ object RuleSetParser {
                         viewIdRegex = entry.optRegexOrNull("viewIdRegex"),
                         requireTextRegex = entry.optRegexOrNull("requireTextRegex"),
                         requireContentDescRegex = entry.optRegexOrNull("requireContentDescRegex"),
+                        requireSelected = if (entry.has("requireSelected")) entry.getBoolean("requireSelected") else null,
+                        requireChecked = if (entry.has("requireChecked")) entry.getBoolean("requireChecked") else null,
                     )
                 }
             } ?: emptyList()

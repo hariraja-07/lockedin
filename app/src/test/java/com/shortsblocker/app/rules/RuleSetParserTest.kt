@@ -53,6 +53,13 @@ class RuleSetParserTest {
         val tabRule = ig.block.first { it.id == "ig_reels_tab" }
         assertTrue(tabRule.requireContentDescRegex!!.containsMatchIn("Reels"))
         assertEquals(null, tabRule.requireTextRegex)
+        assertEquals(null, tabRule.requireSelected)
+        assertEquals(null, tabRule.requireChecked)
+
+        val withSelectedJson = """{ "version": 1, "packages": { "test.pkg": { "mode": "PARTIAL", "block": [{ "id": "t", "requireSelected": true, "requireChecked": false }] } } }"""
+        val parsed = RuleSetParser.parse(withSelectedJson).packages.getValue("test.pkg").block[0]
+        assertEquals(true, parsed.requireSelected)
+        assertEquals(false, parsed.requireChecked)
     }
 
     @Test

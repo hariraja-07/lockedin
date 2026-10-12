@@ -7,6 +7,8 @@ data class MatchRule(
     val viewIdRegex: Regex? = null,
     val requireTextRegex: Regex? = null,
     val requireContentDescRegex: Regex? = null,
+    val requireSelected: Boolean? = null,
+    val requireChecked: Boolean? = null,
 )
 
 data class WhitelistRule(
