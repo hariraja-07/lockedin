@@ -12,14 +12,16 @@ class FakeAccessibleNode(
     private val children: List<FakeAccessibleNode> = emptyList(),
 ) : AccessibleNode {
 
-    var recycled: Boolean = false
+    var recycleCount: Int = 0
         private set
+
+    val recycled: Boolean get() = recycleCount > 0
 
     override val childCount: Int get() = children.size
 
     override fun getChild(index: Int): AccessibleNode? = children.getOrNull(index)
 
     override fun recycle() {
-        recycled = true
+        recycleCount++
     }
 }

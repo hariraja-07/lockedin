@@ -38,6 +38,10 @@ class BlockActionExecutor(
         }, RECHECK_DELAY_MS)
     }
 
+    fun release() {
+        mainHandler.removeCallbacksAndMessages(null)
+    }
+
     companion object {
         private const val RECHECK_DELAY_MS = 200L
         private const val DEBOUNCE_MS = 1000L

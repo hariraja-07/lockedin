@@ -54,6 +54,7 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        executor?.release()
         runCatching { unregisterReceiver(debugDumpReceiver) }
         super.onDestroy()
     }
@@ -72,10 +73,14 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
                 Log.i(TAG_DUMP, "root is null — no accessible window right now")
                 return
             }
-            val ids = sortedSetOf<String>()
-            collectViewIds(root, ids, 0)
-            Log.i(TAG_DUMP, "pkg=${root.packageName} nodes=${ids.size}")
-            ids.forEach { Log.i(TAG_DUMP, it) }
+            try {
+                val ids = sortedSetOf<String>()
+                collectViewIds(root, ids, 0)
+                Log.i(TAG_DUMP, "pkg=${root.packageName} nodes=${ids.size}")
+                ids.forEach { Log.i(TAG_DUMP, it) }
+            } finally {
+                root.recycle()
+            }
         }
     }
 
@@ -88,8 +93,10 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
             out.add("$v:$s:$id$desc")
         }
         for (i in 0 until node.childCount) {
-            node.getChild(i)?.let { child ->
+            val child = node.getChild(i) ?: continue
+            try {
                 collectViewIds(child, out, depth + 1)
+            } finally {
                 child.recycle()
             }
         }
@@ -124,16 +131,18 @@ class ShortsBlockAccessibilityService : AccessibilityService() {
             val ruleSet = repo.get()
 
             val result = evaluateFor(packageName, rootAdapter, ruleSet)
-            recycleAll(result)
-
-            when (val decision = result.decision) {
-                is BlockDecision.Block -> exec.onBlockDetected(packageName, decision.ruleId) {
-                    evaluateCurrentScreen(packageName) is BlockDecision.Block
+            try {
+                when (val decision = result.decision) {
+                    is BlockDecision.Block -> exec.onBlockDetected(packageName, decision.ruleId) {
+                        evaluateCurrentScreen(packageName) is BlockDecision.Block
+                    }
+                    is BlockDecision.Unmatched -> log.logUnmatched(packageName)
+                    is BlockDecision.Allow -> Unit
                 }
-                is BlockDecision.Unmatched -> log.logUnmatched(packageName)
-                is BlockDecision.Allow -> Unit
+                result.decision
+            } finally {
+                recycleAll(result)
             }
-            result.decision
         } catch (e: Exception) {
             Log.e("ShortsBlockService", "Error evaluating current screen for $packageName", e)
             BlockDecision.Unmatched

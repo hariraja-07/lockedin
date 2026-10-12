@@ -208,6 +208,17 @@ class RuleEvaluatorTest {
         assertTrue(child.recycled)
     }
 
+    @Test
+    fun `evaluated nodes are all recycled exactly once`() {
+        val child = FakeAccessibleNode(viewId = "com.instagram.android:id/clips_viewer_view_pager")
+        val root = FakeAccessibleNode(children = listOf(child))
+        val result = evaluator.evaluatePackage(instagram.packageName, root, ruleSet)
+        assertEquals(2, result.visitedNodes.size)
+        result.visitedNodes.forEach { it.recycle() }
+        assertEquals(1, root.recycleCount)
+        assertEquals(1, child.recycleCount)
+    }
+
     // --- Visibility regression: real Samsung Instagram (One UI) Reels dump ---
     // Instagram keeps other surfaces' fragments attached to the view tree.
     // Hidden nodes must not fire whitelist rules; visible ones must fire block.
