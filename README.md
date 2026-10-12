@@ -29,7 +29,7 @@ The reasoning behind specific design choices — how rules get updated, how PIN 
 
 ## Key Features
 
-- **Selective short-form blocking** — detects the YouTube Shorts / Instagram Reels / TikTok / Facebook Reels player and tab, and backs out of it automatically. TikTok and Snapchat are blocked outright (`FULL` mode); the rest use whitelist-based partial blocking (`PARTIAL` mode)
+- **Selective short-form blocking** — detects the YouTube Shorts / Instagram Reels / TikTok / Facebook Reels player and tab, and backs out of it automatically. YouTube and Instagram use whitelist-based partial blocking (`PARTIAL` mode) enabled by default; TikTok, Snapchat, and Facebook rules are included but disabled by default (opt-in via Settings)
 - **Browser URL blocking** — also catches short-form URLs (`youtube.com/shorts`, `instagram.com/reels`, etc.) opened in Chrome, Samsung Internet, Firefox, or Edge
 - **PIN + recovery question** — the Settings screen is PIN-protected; if the PIN is forgotten, it can be recovered on-device via a security question, no email involved. Both the PIN and the recovery answer are stored only as PBKDF2 hashes (salted, 120,000 iterations) inside `EncryptedSharedPreferences` (AES-256, backed by the Android Keystore) — plaintext is never persisted
 - **Two-step protection on the master switch** — turning blocking on is instant, but turning it off requires a confirmation dialog *and* a correct PIN, so it can't be disabled on impulse
@@ -67,35 +67,42 @@ Every decision is made entirely on-device. The rule set (`assets/block_rules.jso
 
 | Area | Technology |
 |---|---|
-| Language | Kotlin |
-| UI | Jetpack Compose, Material3, Navigation Compose |
+| Language | Kotlin 2.0.21 |
+| UI | Jetpack Compose (BOM 2024.06.00), Material3, Navigation Compose |
 | Screen detection | Android `AccessibilityService` API |
 | Secure storage | `androidx.security.crypto` (`EncryptedSharedPreferences`, Android Keystore), PBKDF2WithHmacSHA256 |
-| Background persistence | Foreground Service (`specialUse`), `BOOT_COMPLETED` `BroadcastReceiver` |
+| Background persistence | Foreground Service (`specialUse`), WorkManager `GuardReviveWorker`, `BOOT_COMPLETED` `BroadcastReceiver` |
 | Data format | JSON (`org.json`) — rule definitions, local event log |
-| Testing | JUnit4 — the rule engine is pure Kotlin, so it's unit-tested with no framework dependencies |
-| Build | Gradle (Kotlin DSL), AGP 8.5.2 |
+| Testing | JUnit4, Kotlin Coroutines Test — rule engine is pure Kotlin unit-tested on JVM |
+| Build | Gradle (Kotlin DSL), AGP 8.7.3, compileSdk 35 / targetSdk 35 |
 
 ## Project Structure
 
 ```
 app/src/main/java/com/shortsblocker/app/
-├── rules/      # Decision engine — AccessibleNode, BlockRule, RuleEvaluator, RuleRepository, etc. (pure Kotlin, framework-independent)
-├── service/    # AccessibilityService, foreground service, boot receiver, block enforcement (BACK/HOME)
-├── overlay/    # On-screen notice shown when content is blocked
-├── logging/    # On-device-only event log (ring buffer, max 50 entries)
-├── security/   # PIN + recovery-question storage and verification (PBKDF2 hash + EncryptedSharedPreferences)
-├── prefs/      # Master and per-app on/off state
-└── ui/         # Compose screens (onboarding, PIN setup/entry/recovery, home, settings)
+├── app/        # Application class, StrictMode & uncaught exception handling
+├── domain/     # ProtectionStatus, ProtectionStatusProvider, SessionLock, WatchdogDecision, WatchdogMonitor
+├── data/       # BlockingPreferences, SupportedApps, BlockEventLogger, RuleRepository
+├── rules/      # Decision engine — AccessibleNode, BlockRule, RuleEvaluator, etc. (pure Kotlin, framework-independent)
+├── service/    # AccessibilityService, foreground service, boot receiver, block enforcement (BACK/HOME), WorkManager
+├── overlay/    # On-screen notice shown when content is blocked, lockout overlay
+├── security/   # PIN + recovery storage and verification (PBKDF2 hash, constant-time compare, brute force defense)
+└── ui/         # Compose screens (onboarding wizard, PIN setup/entry/recovery, home, settings), ViewModels, LockoutActivity
+    └── theme/
 
 app/src/main/assets/block_rules.json   # Bundled block rule definitions (no remote updates)
-app/src/test/                          # RuleEvaluator unit tests
+app/src/test/                          # Unit tests (RuleEvaluator, WatchdogDecision, HashUtils, PinSecurity, etc.)
 docs/                                  # Design decisions, technical spec, privacy policy, Play Store review notes
 ```
 
 ## Build & Run
 
-1. Open the project root (`ShortsBlocker/`) in Android Studio.
+0. Clone repository:
+   ```bash
+   git clone https://github.com/hariraja-07/lockedin.git
+   cd lockedin
+   ```
+1. Open the project root (`shorts-blocker/`) in Android Studio.
 2. Once Gradle sync finishes, connect a physical device or emulator (API 26+) and run.
 3. On first launch: onboarding → grant **Accessibility** permission → grant **Display over other apps** permission → set a PIN and recovery question.
 4. To run just the unit tests:
