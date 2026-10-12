@@ -82,7 +82,7 @@ class BlockGuardForegroundService : Service() {
         val pinMgr = pinManager ?: return
         val overlay = lockoutOverlay ?: return
 
-        serviceScope.launch {
+        serviceScope.launch(Dispatchers.IO) {
             WatchdogMonitor(
                 currentState = {
                     WatchdogDecision.state(
@@ -92,8 +92,10 @@ class BlockGuardForegroundService : Service() {
                     )
                 },
                 onStateChange = { state ->
-                    notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
-                    if (state == WatchdogState.Lockout) overlay.show() else overlay.hide()
+                    serviceScope.launch(Dispatchers.Main) {
+                        notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
+                        if (state == WatchdogState.Lockout) overlay.show() else overlay.hide()
+                    }
                 },
                 initialStartupDelayMillis = 5_000L,
             ).run()
