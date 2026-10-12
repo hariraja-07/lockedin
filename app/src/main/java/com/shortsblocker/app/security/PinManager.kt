@@ -13,7 +13,10 @@ import androidx.security.crypto.MasterKey
  * so a forgotten PIN doesn't permanently lock the owner out of Settings —
  * the recovery answer is the only way to reset it, no email/SMS involved.
  */
-class PinManager(private val context: Context) {
+class PinManager(
+    private val context: Context,
+    private val recoveryTracker: PinRecoveryTracker = PinRecoveryTracker(context),
+) {
 
     var keystoreCorrupted: Boolean = false
         private set
@@ -105,18 +108,36 @@ class PinManager(private val context: Context) {
         false
     }
 
+    fun isRecoveryLockedOut(): Boolean = recoveryTracker.isRecoveryLockedOut()
+
+    fun remainingRecoveryCooldownSeconds(): Long = recoveryTracker.remainingCooldownSeconds()
+
+    fun recoveryLockedOutUntilMillis(): Long = recoveryTracker.recoveryLockedOutUntilMillis()
+
+    fun recoveryFailedAttempts(): Int = recoveryTracker.failedAttempts()
+
+    fun recordRecoveryFailure(): Boolean = recoveryTracker.recordFailure()
+
+    fun clearRecoveryFailures() = recoveryTracker.clearRecoveryFailures()
+
     fun verifyRecoveryAnswer(answer: String): Boolean = runCatching {
+        if (isRecoveryLockedOut()) return false
         val saltHex = prefs.getString(KEY_RECOVERY_SALT, null) ?: return false
         val storedHash = prefs.getString(KEY_RECOVERY_HASH, null) ?: return false
         val salt = HashUtils.saltFromHex(saltHex)
         val normalizedAnswer = answer.trim().lowercase()
         val valid = HashUtils.verify(normalizedAnswer, salt, storedHash)
-        if (valid && HashUtils.needsUpgrade(storedHash)) {
-            val newSalt = HashUtils.randomSalt()
-            prefs.edit()
-                .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(newSalt))
-                .putString(KEY_RECOVERY_HASH, HashUtils.hash(normalizedAnswer, newSalt))
-                .apply()
+        if (valid) {
+            clearRecoveryFailures()
+            if (HashUtils.needsUpgrade(storedHash)) {
+                val newSalt = HashUtils.randomSalt()
+                prefs.edit()
+                    .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(newSalt))
+                    .putString(KEY_RECOVERY_HASH, HashUtils.hash(normalizedAnswer, newSalt))
+                    .apply()
+            }
+        } else {
+            recordRecoveryFailure()
         }
         valid
     }.getOrElse {

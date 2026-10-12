@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
 import com.shortsblocker.app.security.PinAttemptTracker
 import com.shortsblocker.app.security.PinManager
+import com.shortsblocker.app.security.PinRecoveryTracker
 import com.shortsblocker.app.security.PinValidationResult
 import com.shortsblocker.app.security.PinValidator
 import kotlinx.coroutines.delay
@@ -189,6 +190,14 @@ fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
     var answer by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
     val question = remember { pinManager.getRecoveryQuestion() ?: "" }
+    var cooldownSeconds by remember { mutableStateOf(pinManager.remainingRecoveryCooldownSeconds()) }
+
+    LaunchedEffect(cooldownSeconds) {
+        if (cooldownSeconds > 0) {
+            delay(1000)
+            cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -200,13 +209,45 @@ fun PinRecoveryScreen(pinManager: PinManager, onRecovered: () -> Unit) {
             value = answer,
             onValueChange = { answer = it; error = false },
             label = { Text(stringResource(R.string.pin_recovery_answer_hint)) },
+            enabled = cooldownSeconds == 0L,
         )
-        if (error) {
-            Text(stringResource(R.string.pin_recovery_error), color = MaterialTheme.colorScheme.error)
+        if (cooldownSeconds > 0) {
+            val hours = cooldownSeconds / 3600
+            val minutes = (cooldownSeconds % 3600) / 60
+            val sec = cooldownSeconds % 60
+            val timeFormatted = when {
+                hours > 0 -> "${hours}h ${minutes}m"
+                minutes > 0 -> "${minutes}m ${sec}s"
+                else -> "${sec}s"
+            }
+            Text(
+                text = stringResource(R.string.pin_recovery_cooldown_error, timeFormatted),
+                color = MaterialTheme.colorScheme.error,
+            )
+        } else if (error) {
+            val remaining = (PinRecoveryTracker.MAX_ATTEMPTS - pinManager.recoveryFailedAttempts()).coerceAtLeast(1)
+            Text(
+                text = stringResource(R.string.pin_recovery_attempts_remaining, remaining),
+                color = MaterialTheme.colorScheme.error,
+            )
         }
-        Button(onClick = {
-            if (pinManager.verifyRecoveryAnswer(answer)) onRecovered() else error = true
-        }) {
+        Button(
+            onClick = {
+                if (pinManager.isRecoveryLockedOut()) {
+                    cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
+                    return@Button
+                }
+                if (pinManager.verifyRecoveryAnswer(answer)) {
+                    onRecovered()
+                } else {
+                    error = true
+                    if (pinManager.isRecoveryLockedOut()) {
+                        cooldownSeconds = pinManager.remainingRecoveryCooldownSeconds()
+                    }
+                }
+            },
+            enabled = cooldownSeconds == 0L && answer.isNotBlank(),
+        ) {
             Text(stringResource(R.string.pin_recovery_confirm))
         }
     }

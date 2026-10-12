@@ -55,6 +55,8 @@
     <string name="pin_recovery_answer_hint">Enter recovery answer</string>
     <string name="pin_recovery_confirm">Confirm and set a new PIN</string>
     <string name="pin_recovery_error">Answer doesn\'t match</string>
+    <string name="pin_recovery_cooldown_error">Too many incorrect attempts. Try again in %1$s</string>
+    <string name="pin_recovery_attempts_remaining">Incorrect answer (%1$d attempts remaining)</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_change_pin">Change PIN</string>
