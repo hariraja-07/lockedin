@@ -8,6 +8,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.content.pm.ServiceInfo
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
 import com.shortsblocker.app.overlay.LockoutOverlayController
@@ -22,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Persistent notification + START_STICKY so Android is less likely to kill
@@ -34,20 +37,34 @@ import kotlinx.coroutines.launch
 class BlockGuardForegroundService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private lateinit var blockingPreferences: BlockingPreferences
-    private lateinit var pinManager: PinManager
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var lockoutOverlay: LockoutOverlayController
+    private var blockingPreferences: BlockingPreferences? = null
+    private var pinManager: PinManager? = null
+    private val notificationManager by lazy { getSystemService(NotificationManager::class.java) }
+    private var lockoutOverlay: LockoutOverlayController? = null
 
     override fun onCreate() {
         super.onCreate()
-        blockingPreferences = BlockingPreferences(applicationContext)
-        pinManager = PinManager(applicationContext)
-        notificationManager = getSystemService(NotificationManager::class.java)
-        lockoutOverlay = LockoutOverlayController(applicationContext)
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification(WatchdogState.Protected))
-        startWatchdog()
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            buildNotification(WatchdogState.Protected),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            } else {
+                0
+            },
+        )
+        serviceScope.launch(Dispatchers.IO) {
+            val prefs = BlockingPreferences(applicationContext)
+            val pin = PinManager(applicationContext)
+            withContext(Dispatchers.Main) {
+                blockingPreferences = prefs
+                pinManager = pin
+                lockoutOverlay = LockoutOverlayController(applicationContext)
+                startWatchdog()
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -56,22 +73,27 @@ class BlockGuardForegroundService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
+        lockoutOverlay?.hide()
         super.onDestroy()
     }
 
     private fun startWatchdog() {
+        val prefs = blockingPreferences ?: return
+        val pinMgr = pinManager ?: return
+        val overlay = lockoutOverlay ?: return
+
         serviceScope.launch {
             WatchdogMonitor(
                 currentState = {
                     WatchdogDecision.state(
-                        masterEnabled = blockingPreferences.masterEnabled,
+                        masterEnabled = prefs.masterEnabled,
                         accessibilityServiceEnabled = AccessibilityStatus.isServiceEnabled(applicationContext),
-                        isPinSet = pinManager.isPinSet(),
+                        isPinSet = pinMgr.isPinSet(),
                     )
                 },
                 onStateChange = { state ->
                     notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
-                    if (state == WatchdogState.Lockout) lockoutOverlay.show() else lockoutOverlay.hide()
+                    if (state == WatchdogState.Lockout) overlay.show() else overlay.hide()
                 },
                 initialStartupDelayMillis = 5_000L,
             ).run()

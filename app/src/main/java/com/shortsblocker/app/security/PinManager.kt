@@ -1,6 +1,9 @@
 package com.shortsblocker.app.security
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -10,54 +13,112 @@ import androidx.security.crypto.MasterKey
  * so a forgotten PIN doesn't permanently lock the owner out of Settings —
  * the recovery answer is the only way to reset it, no email/SMS involved.
  */
-class PinManager(context: Context) {
+class PinManager(private val context: Context) {
 
-    private val prefs = run {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
+    var keystoreCorrupted: Boolean = false
+        private set
+
+    private var prefs: SharedPreferences = initPrefs()
+
+    private fun initPrefs(): SharedPreferences {
+        return runCatching {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        }.getOrElse { error ->
+            Log.e("PinManager", "Failed to initialize EncryptedSharedPreferences (Keystore failure)", error)
+            keystoreCorrupted = true
+            context.getSharedPreferences("${PREFS_NAME}_fallback", Context.MODE_PRIVATE)
+        }
     }
 
-    fun isPinSet(): Boolean = prefs.contains(KEY_PIN_HASH)
+    fun isPinSet(): Boolean = runCatching {
+        prefs.contains(KEY_PIN_HASH)
+    }.getOrElse {
+        keystoreCorrupted = true
+        false
+    }
 
     fun setPin(pin: String) {
         val salt = HashUtils.randomSalt()
-        prefs.edit()
-            .putString(KEY_PIN_SALT, HashUtils.saltToHex(salt))
-            .putString(KEY_PIN_HASH, HashUtils.hash(pin, salt))
-            .apply()
+        runCatching {
+            prefs.edit()
+                .putString(KEY_PIN_SALT, HashUtils.saltToHex(salt))
+                .putString(KEY_PIN_HASH, HashUtils.hash(pin, salt))
+                .apply()
+        }.onFailure {
+            keystoreCorrupted = true
+            Log.e("PinManager", "Failed to set PIN", it)
+        }
     }
 
-    fun verifyPin(pin: String): Boolean {
+    fun verifyPin(pin: String): Boolean = runCatching {
         val saltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
         val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
-        return HashUtils.hash(pin, HashUtils.saltFromHex(saltHex)) == storedHash
+        HashUtils.hash(pin, HashUtils.saltFromHex(saltHex)) == storedHash
+    }.getOrElse {
+        keystoreCorrupted = true
+        false
     }
 
     fun setRecovery(question: String, answer: String) {
         val salt = HashUtils.randomSalt()
-        prefs.edit()
-            .putString(KEY_RECOVERY_QUESTION, question)
-            .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(salt))
-            .putString(KEY_RECOVERY_HASH, HashUtils.hash(answer.trim().lowercase(), salt))
-            .apply()
+        runCatching {
+            prefs.edit()
+                .putString(KEY_RECOVERY_QUESTION, question)
+                .putString(KEY_RECOVERY_SALT, HashUtils.saltToHex(salt))
+                .putString(KEY_RECOVERY_HASH, HashUtils.hash(answer.trim().lowercase(), salt))
+                .apply()
+        }.onFailure {
+            keystoreCorrupted = true
+            Log.e("PinManager", "Failed to set recovery", it)
+        }
     }
 
-    fun getRecoveryQuestion(): String? = prefs.getString(KEY_RECOVERY_QUESTION, null)
+    fun getRecoveryQuestion(): String? = runCatching {
+        prefs.getString(KEY_RECOVERY_QUESTION, null)
+    }.getOrElse {
+        keystoreCorrupted = true
+        null
+    }
 
-    fun hasRecovery(): Boolean = prefs.contains(KEY_RECOVERY_HASH)
+    fun hasRecovery(): Boolean = runCatching {
+        prefs.contains(KEY_RECOVERY_HASH)
+    }.getOrElse {
+        keystoreCorrupted = true
+        false
+    }
 
-    fun verifyRecoveryAnswer(answer: String): Boolean {
+    fun verifyRecoveryAnswer(answer: String): Boolean = runCatching {
         val saltHex = prefs.getString(KEY_RECOVERY_SALT, null) ?: return false
         val storedHash = prefs.getString(KEY_RECOVERY_HASH, null) ?: return false
-        return HashUtils.hash(answer.trim().lowercase(), HashUtils.saltFromHex(saltHex)) == storedHash
+        HashUtils.hash(answer.trim().lowercase(), HashUtils.saltFromHex(saltHex)) == storedHash
+    }.getOrElse {
+        keystoreCorrupted = true
+        false
+    }
+
+    fun resetCorruptedStorage(): Boolean {
+        return runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                context.deleteSharedPreferences(PREFS_NAME)
+            } else {
+                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
+            }
+            prefs = initPrefs()
+            keystoreCorrupted = false
+            true
+        }.getOrElse {
+            Log.e("PinManager", "Failed to reset corrupted storage", it)
+            false
+        }
     }
 
     companion object {
