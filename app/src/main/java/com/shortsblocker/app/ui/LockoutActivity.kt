@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +58,8 @@ class LockoutActivity : ComponentActivity() {
         val blockingPreferences = BlockingPreferences(applicationContext)
 
         setContent {
-            ShortsBlockerTheme {
+            val themeMode by blockingPreferences.themeModeFlow.collectAsState()
+            ShortsBlockerTheme(themeMode = themeMode) {
                 LockoutContent(
                     onOpenAccessibility = {
                         IntentLauncher.openAccessibilitySettings(this)

@@ -33,7 +33,8 @@ class MainActivity : ComponentActivity() {
         val blockingPreferences = BlockingPreferences(applicationContext)
 
         setContent {
-            ShortsBlockerTheme {
+            val themeMode by blockingPreferences.themeModeFlow.collectAsState()
+            ShortsBlockerTheme(themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AppNavGraph(
                         pinManager = pinManager,

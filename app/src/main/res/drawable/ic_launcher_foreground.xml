@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Fortress Shield -->
+    <path android:pathData="M54,20.25 L81,29.95 C81,56.95 70.88,76.78 54,87.33 C37.13,76.78 27,56.95 27,29.95 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="29.5"
+                android:startY="25.3"
+                android:endX="78.5"
+                android:endY="82.3"
+                android:startColor="#6366F1"
+                android:centerColor="#4F46E5"
+                android:endColor="#06B6D4" />
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Plate -->
+    <path
+        android:fillColor="#E60F172A"
+        android:pathData="M54,25.73 L75.94,33.75 C75.94,55.69 67.92,72.56 54,81.42 C40.08,72.56 32.06,55.69 32.06,33.75 Z" />
+
+    <!-- Padlock Shackle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round"
+        android:pathData="M47.67,48.52 V40.92 C47.67,37.42 50.5,34.6 54,34.6 C57.5,34.6 60.33,37.42 60.33,40.92 V48.52" />
+
+    <!-- Padlock Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47.68,47.67 H60.32 C62.42,47.67 64.13,49.38 64.13,51.47 V61.59 C64.13,63.68 62.42,65.39 60.32,65.39 H47.68 C45.58,65.39 43.88,63.68 43.88,61.59 V51.47 C43.88,49.38 45.58,47.67 47.68,47.67 Z" />
+
+    <!-- Padlock Keyhole Circle -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M54,52.73 A2.11,2.11 0 1 1 53.99,52.73 Z" />
+
+    <!-- Padlock Keyhole Slot -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M53.37,55.69 L52.52,60.75 H55.48 L54.63,55.69 Z" />
+
+    <!-- Emerald Active Guard Shield Point -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M54,70.87 A1.69,1.69 0 1 1 53.99,70.87 Z" />
+</vector>

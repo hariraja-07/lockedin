@@ -7,14 +7,22 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
+import com.shortsblocker.app.data.AppThemeMode
 import com.shortsblocker.app.data.BlockingPreferences
 import com.shortsblocker.app.data.SupportedApps
 import com.shortsblocker.app.domain.IntentLauncher
@@ -37,6 +46,7 @@ fun SettingsScreen(
     onChangePin: () -> Unit,
 ) {
     val context = LocalContext.current
+    val currentThemeMode by blockingPreferences.themeModeFlow.collectAsState()
 
     Column(
         modifier =
@@ -88,7 +98,52 @@ fun SettingsScreen(
             Text(stringResource(R.string.settings_change_pin))
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        Text(
+            text = stringResource(R.string.settings_theme_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AppThemeMode.entries.forEach { mode ->
+                val selected = currentThemeMode == mode
+                val label =
+                    when (mode) {
+                        AppThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
+                        AppThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
+                        AppThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
+                    }
+                val icon =
+                    when (mode) {
+                        AppThemeMode.SYSTEM -> Icons.Default.BrightnessAuto
+                        AppThemeMode.LIGHT -> Icons.Default.LightMode
+                        AppThemeMode.DARK -> Icons.Default.DarkMode
+                    }
+
+                FilterChip(
+                    selected = selected,
+                    onClick = { blockingPreferences.themeMode = mode },
+                    label = { Text(label) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = 48.dp),
+                )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         Text(stringResource(R.string.settings_per_app_title), style = MaterialTheme.typography.titleMedium)
         SupportedApps.ALL.forEach { app ->

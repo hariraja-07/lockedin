@@ -137,4 +137,8 @@
     <string name="pin_setup_length_counter">%1$d digits entered</string>
     <string name="pin_setup_match_indicator">✓ PINs match</string>
     <string name="pin_setup_mismatch_indicator">PINs do not match</string>
+    <string name="settings_theme_title">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
 </resources>
