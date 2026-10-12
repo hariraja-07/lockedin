@@ -13,16 +13,32 @@ android {
         applicationId = "com.shortsblocker.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        // Release signing is optional: provide the keystore via
+        // ORG_GRADLE_PROJECT_releaseKeystorePath (and -Storepass/-Keypass/-Alias)
+        // or the build falls back to unsigned — keeps CI forks building without secrets.
+        create("release") {
+            val keystorePath = providers.gradleProperty("releaseKeystorePath").orNull
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = providers.gradleProperty("releaseKeystorePassword").orNull
+                keyAlias = providers.gradleProperty("releaseKeyAlias").orNull ?: "lockedin"
+                keyPassword = providers.gradleProperty("releaseKeyPassword").orNull
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
         }
     }
 
