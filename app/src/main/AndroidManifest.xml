@@ -26,6 +26,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.LockoutActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.ShortsBlocker" />
+
         <!--
           Accessibility service: screen content is evaluated on-device only and
           never transmitted anywhere. Google Play review requires a clear

@@ -9,12 +9,14 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.content.pm.ServiceInfo
+import android.provider.Settings
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
 import com.shortsblocker.app.overlay.LockoutOverlayController
 import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.security.PinManager
+import com.shortsblocker.app.ui.LockoutActivity
 import com.shortsblocker.app.ui.MainActivity
 import com.shortsblocker.app.watchdog.WatchdogDecision
 import com.shortsblocker.app.watchdog.WatchdogMonitor
@@ -94,7 +96,15 @@ class BlockGuardForegroundService : Service() {
                 onStateChange = { state ->
                     serviceScope.launch(Dispatchers.Main) {
                         notificationManager.notify(NOTIFICATION_ID, buildNotification(state))
-                        if (state == WatchdogState.Lockout) overlay.show() else overlay.hide()
+                        if (state == WatchdogState.Lockout) {
+                            if (Settings.canDrawOverlays(applicationContext)) {
+                                overlay.show()
+                            } else {
+                                startActivity(LockoutActivity.createIntent(applicationContext))
+                            }
+                        } else {
+                            overlay.hide()
+                        }
                     }
                 },
                 initialStartupDelayMillis = 5_000L,

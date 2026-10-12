@@ -59,14 +59,17 @@ class LockoutOverlayController(private val context: Context) {
             windowManager.addView(view, params)
             currentView = view
         } catch (e: WindowManager.BadTokenException) {
-            Log.w(TAG, "BadTokenException adding lockout overlay", e)
+            Log.w(TAG, "BadTokenException adding lockout overlay, launching LockoutActivity fallback", e)
             currentView = null
+            runCatching { context.startActivity(com.shortsblocker.app.ui.LockoutActivity.createIntent(context)) }
         } catch (e: SecurityException) {
-            Log.w(TAG, "SecurityException adding lockout overlay (missing overlay permission)", e)
+            Log.w(TAG, "SecurityException adding lockout overlay, launching LockoutActivity fallback", e)
             currentView = null
+            runCatching { context.startActivity(com.shortsblocker.app.ui.LockoutActivity.createIntent(context)) }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to add lockout overlay view", e)
+            Log.e(TAG, "Failed to add lockout overlay view, launching LockoutActivity fallback", e)
             currentView = null
+            runCatching { context.startActivity(com.shortsblocker.app.ui.LockoutActivity.createIntent(context)) }
         }
     }
 
