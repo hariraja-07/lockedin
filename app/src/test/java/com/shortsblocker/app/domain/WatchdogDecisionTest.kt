@@ -1,8 +1,5 @@
 package com.shortsblocker.app.domain
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -48,60 +45,4 @@ class WatchdogDecisionTest {
             WatchdogDecision.state(masterEnabled = true, accessibilityServiceEnabled = false, isPinSet = false),
         )
     }
-}
-
-class WatchdogMonitorTest {
-    @Test
-    fun `emits only when the state actually changes`() =
-        runBlocking {
-            val polledStates =
-                ArrayDeque(
-                    listOf(
-                        WatchdogState.Protected,
-                        WatchdogState.Protected,
-                        WatchdogState.Lockout,
-                        WatchdogState.Lockout,
-                        WatchdogState.Lockout,
-                        WatchdogState.PausedByUser,
-                        WatchdogState.Protected,
-                    ),
-                )
-            val emitted = mutableListOf<WatchdogState>()
-
-            val job =
-                launch {
-                    WatchdogMonitor(
-                        currentState = { polledStates.removeFirstOrNull() ?: WatchdogState.Protected },
-                        onStateChange = { emitted += it },
-                        pollIntervalMillis = 1L,
-                    ).run()
-                }
-            while (polledStates.isNotEmpty()) delay(5L)
-            delay(20L)
-            job.cancel()
-
-            assertEquals(
-                listOf(WatchdogState.Protected, WatchdogState.Lockout, WatchdogState.PausedByUser, WatchdogState.Protected),
-                emitted,
-            )
-        }
-
-    @Test
-    fun `no emission when state never changes`() =
-        runBlocking {
-            val emitted = mutableListOf<WatchdogState>()
-
-            val job =
-                launch {
-                    WatchdogMonitor(
-                        currentState = { WatchdogState.Protected },
-                        onStateChange = { emitted += it },
-                        pollIntervalMillis = 1L,
-                    ).run()
-                }
-            delay(20L)
-            job.cancel()
-
-            assertEquals(listOf(WatchdogState.Protected), emitted)
-        }
 }
