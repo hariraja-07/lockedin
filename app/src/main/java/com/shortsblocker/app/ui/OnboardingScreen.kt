@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -149,14 +150,14 @@ fun OnboardingScreen(
                     if (protectionStatus.isAccessibilityGranted) {
                         OutlinedButton(
                             onClick = { IntentLauncher.openAccessibilitySettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_accessibility_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(
                             onClick = { IntentLauncher.openAccessibilitySettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_accessibility_button))
                         }
@@ -188,14 +189,14 @@ fun OnboardingScreen(
                     if (protectionStatus.isOverlayGranted) {
                         OutlinedButton(
                             onClick = { IntentLauncher.openOverlaySettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_overlay_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(
                             onClick = { IntentLauncher.openOverlaySettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_overlay_button))
                         }
@@ -214,14 +215,14 @@ fun OnboardingScreen(
                     if (protectionStatus.isBatteryExempted) {
                         OutlinedButton(
                             onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_battery_granted), color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Button(
                             onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                         ) {
                             Text(stringResource(R.string.onboarding_battery_button))
                         }
@@ -236,7 +237,7 @@ fun OnboardingScreen(
                             )
                             OutlinedButton(
                                 onClick = { IntentLauncher.openOemAutostartSettings(context) },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
                             ) {
                                 Text(stringResource(R.string.onboarding_oem_button))
                             }
@@ -253,7 +254,10 @@ fun OnboardingScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (currentStep > 0) {
-                TextButton(onClick = { currentStep-- }) {
+                TextButton(
+                    onClick = { currentStep-- },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) {
                     Text(stringResource(R.string.onboarding_step_back))
                 }
             } else {
@@ -262,7 +266,10 @@ fun OnboardingScreen(
 
             when (currentStep) {
                 0 -> {
-                    Button(onClick = { currentStep++ }) {
+                    Button(
+                        onClick = { currentStep++ },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                    ) {
                         Text(stringResource(R.string.onboarding_step_next))
                     }
                 }
@@ -270,6 +277,7 @@ fun OnboardingScreen(
                     Button(
                         onClick = { currentStep++ },
                         enabled = protectionStatus.isAccessibilityGranted,
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
                     ) {
                         Text(stringResource(R.string.onboarding_step_next))
                     }
@@ -278,12 +286,16 @@ fun OnboardingScreen(
                     Button(
                         onClick = { currentStep++ },
                         enabled = protectionStatus.isOverlayGranted,
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
                     ) {
                         Text(stringResource(R.string.onboarding_step_next))
                     }
                 }
                 3 -> {
-                    Button(onClick = onFinished) {
+                    Button(
+                        onClick = onFinished,
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                    ) {
                         Text(
                             text = stringResource(R.string.onboarding_pin_button),
                             fontWeight = FontWeight.Bold,

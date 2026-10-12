@@ -4,7 +4,9 @@ import android.app.Activity
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -79,6 +81,7 @@ fun PinSetupScreen(
             label = { Text(stringResource(R.string.pin_setup_title)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = confirmPin,
@@ -86,34 +89,40 @@ fun PinSetupScreen(
             label = { Text(stringResource(R.string.pin_setup_confirm_label)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = question,
             onValueChange = { question = it; error = null },
             label = { Text(stringResource(R.string.pin_setup_recovery_question_label)) },
+            modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = answer,
             onValueChange = { answer = it; error = null },
             label = { Text(stringResource(R.string.pin_setup_recovery_answer_label)) },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-        Button(onClick = {
-            when (PinValidator.validate(pin, confirmPin)) {
-                is PinValidationResult.TooShort -> error = pinTooShortError
-                is PinValidationResult.Mismatch -> error = mismatchError
-                is PinValidationResult.TrivialPin -> error = trivialError
-                is PinValidationResult.Valid -> {
-                    if (question.isBlank() || answer.isBlank()) {
-                        error = missingRecoveryError
-                    } else {
-                        viewModel.savePin(pin, question, answer, onDone)
+        Button(
+            onClick = {
+                when (PinValidator.validate(pin, confirmPin)) {
+                    is PinValidationResult.TooShort -> error = pinTooShortError
+                    is PinValidationResult.Mismatch -> error = mismatchError
+                    is PinValidationResult.TrivialPin -> error = trivialError
+                    is PinValidationResult.Valid -> {
+                        if (question.isBlank() || answer.isBlank()) {
+                            error = missingRecoveryError
+                        } else {
+                            viewModel.savePin(pin, question, answer, onDone)
+                        }
                     }
                 }
-            }
-        }) {
+            },
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
+        ) {
             Text(stringResource(R.string.pin_setup_confirm))
         }
     }
@@ -160,6 +169,7 @@ fun PinEntryScreen(
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             enabled = !isLockedOut,
+            modifier = Modifier.fillMaxWidth(),
         )
         if (isLockedOut) {
             Text(
@@ -178,10 +188,14 @@ fun PinEntryScreen(
                 viewModel.verifyPin(pin, onSuccess = onSuccess)
             },
             enabled = !isLockedOut && pin.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         ) {
             Text(stringResource(R.string.pin_entry_confirm))
         }
-        TextButton(onClick = onForgot) {
+        TextButton(
+            onClick = onForgot,
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
+        ) {
             Text(stringResource(R.string.pin_entry_forgot))
         }
     }
@@ -224,6 +238,7 @@ fun PinRecoveryScreen(
             onValueChange = { answer = it; error = false },
             label = { Text(stringResource(R.string.pin_recovery_answer_hint)) },
             enabled = !isLockedOut,
+            modifier = Modifier.fillMaxWidth(),
         )
         if (isLockedOut) {
             val hours = cooldownSeconds / 3600
@@ -254,6 +269,7 @@ fun PinRecoveryScreen(
                 )
             },
             enabled = !isLockedOut && answer.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         ) {
             Text(stringResource(R.string.pin_recovery_confirm))
         }

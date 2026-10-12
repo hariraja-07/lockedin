@@ -3,6 +3,7 @@ package com.shortsblocker.app.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -88,13 +91,19 @@ fun HomeScreen(
             title = { Text(stringResource(R.string.home_disable_confirm_title)) },
             text = { Text(stringResource(R.string.home_disable_confirm_body)) },
             confirmButton = {
-                TextButton(onClick = {
-                    showDisableConfirm = false
-                    onRequestDisable()
-                }) { Text(stringResource(R.string.home_disable_confirm_yes)) }
+                TextButton(
+                    onClick = {
+                        showDisableConfirm = false
+                        onRequestDisable()
+                    },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) { Text(stringResource(R.string.home_disable_confirm_yes)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDisableConfirm = false }) {
+                TextButton(
+                    onClick = { showDisableConfirm = false },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) {
                     Text(stringResource(R.string.home_disable_confirm_cancel))
                 }
             },
@@ -121,6 +130,7 @@ fun HomeScreen(
                         label = { Text(stringResource(R.string.pin_entry_title)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     if (clearPinError) {
                         Text(stringResource(R.string.pin_entry_error), color = MaterialTheme.colorScheme.error)
@@ -144,16 +154,20 @@ fun HomeScreen(
                         }
                     },
                     enabled = clearPinInput.isNotEmpty(),
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
                 ) {
                     Text(stringResource(R.string.home_log_clear_button))
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showClearLogDialog = false
-                    clearPinInput = ""
-                    clearPinError = false
-                }) {
+                TextButton(
+                    onClick = {
+                        showClearLogDialog = false
+                        clearPinInput = ""
+                        clearPinError = false
+                    },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) {
                     Text(stringResource(R.string.home_disable_confirm_cancel))
                 }
             },
@@ -217,6 +231,9 @@ fun HomeScreen(
                         } else {
                             showDisableConfirm = true
                         }
+                    },
+                    modifier = Modifier.semantics {
+                        contentDescription = statusTitle
                     },
                 )
             }
@@ -291,7 +308,7 @@ fun HomeScreen(
 
         Button(
             onClick = onOpenSettings,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         ) {
             Text(stringResource(R.string.home_settings_button))
         }
@@ -314,13 +331,18 @@ fun HomeScreen(
                     selected = !showBlockedOnly,
                     onClick = { showBlockedOnly = false },
                     label = { Text(stringResource(R.string.home_log_filter_all)) },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
                 )
                 FilterChip(
                     selected = showBlockedOnly,
                     onClick = { showBlockedOnly = true },
                     label = { Text(stringResource(R.string.home_log_filter_blocked)) },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
                 )
-                TextButton(onClick = { showClearLogDialog = true }) {
+                TextButton(
+                    onClick = { showClearLogDialog = true },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) {
                     Text(stringResource(R.string.home_log_clear_button))
                 }
             }
@@ -374,7 +396,10 @@ private fun PermissionFixRow(
             Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(desc, style = MaterialTheme.typography.bodySmall)
         }
-        Button(onClick = onFix) {
+        Button(
+            onClick = onFix,
+            modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+        ) {
             Text(stringResource(R.string.home_perm_fix_button))
         }
     }

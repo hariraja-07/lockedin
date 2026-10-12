@@ -2,7 +2,9 @@ package com.shortsblocker.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -76,6 +78,7 @@ fun ChangePinScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 enabled = lockoutSeconds == 0L,
+                modifier = Modifier.fillMaxWidth(),
             )
             if (lockoutSeconds > 0) {
                 Text(
@@ -108,6 +111,7 @@ fun ChangePinScreen(
                     }
                 },
                 enabled = lockoutSeconds == 0L && currentPin.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
             ) {
                 Text(stringResource(R.string.pin_entry_confirm))
             }
@@ -118,6 +122,7 @@ fun ChangePinScreen(
                 label = { Text(stringResource(R.string.change_pin_new_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = confirmNewPin,
@@ -125,16 +130,19 @@ fun ChangePinScreen(
                 label = { Text(stringResource(R.string.change_pin_confirm_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = question,
                 onValueChange = { question = it; error = null },
                 label = { Text(stringResource(R.string.pin_setup_recovery_question_label)) },
+                modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = answer,
                 onValueChange = { answer = it; error = null },
                 label = { Text(stringResource(R.string.pin_setup_recovery_answer_label)) },
+                modifier = Modifier.fillMaxWidth(),
             )
 
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -156,6 +164,7 @@ fun ChangePinScreen(
                         }
                     }
                 },
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
             ) {
                 Text(stringResource(R.string.change_pin_save))
             }

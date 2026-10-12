@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -130,14 +131,14 @@ fun LockoutContent(
             Button(
                 onClick = onOpenAccessibility,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4)),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
             ) {
                 Text(stringResource(R.string.lockout_button), color = Color.White)
             }
 
             TextButton(
                 onClick = { showPinDialog = true },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
             ) {
                 Text(stringResource(R.string.lockout_emergency_button), color = Color(0xFFBB86FC))
             }
@@ -156,6 +157,7 @@ fun LockoutContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                             singleLine = true,
                             isError = errorMessage != null,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                         errorMessage?.let {
                             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -163,19 +165,25 @@ fun LockoutContent(
                     }
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        val success = onEmergencyUnlock(pinText)
-                        if (success) {
-                            showPinDialog = false
-                        } else {
-                            errorMessage = invalidPinMessage
-                        }
-                    }) {
+                    Button(
+                        onClick = {
+                            val success = onEmergencyUnlock(pinText)
+                            if (success) {
+                                showPinDialog = false
+                            } else {
+                                errorMessage = invalidPinMessage
+                            }
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                    ) {
                         Text(stringResource(R.string.lockout_unlock_button))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showPinDialog = false }) {
+                    TextButton(
+                        onClick = { showPinDialog = false },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                    ) {
                         Text(stringResource(R.string.home_disable_confirm_cancel))
                     }
                 },
