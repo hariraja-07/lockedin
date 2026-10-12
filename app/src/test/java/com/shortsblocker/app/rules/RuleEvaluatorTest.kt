@@ -313,4 +313,53 @@ class RuleEvaluatorTest {
         assertTrue(decision is BlockDecision.Block)
         assertEquals("checked_node", (decision as BlockDecision.Block).ruleId)
     }
+
+    @Test
+    fun `allMatch compound rule blocks only when all conditions are satisfied in tree`() {
+        val compoundRule = MatchRule(
+            id = "reels_viewer_and_selected_tab",
+            allMatch = listOf(
+                MatchRule(id = "sub1", viewIdRegex = Regex(".*clips_viewer_view_pager.*")),
+                MatchRule(id = "sub2", viewIdRegex = Regex(".*clips_tab.*"), requireSelected = true),
+            ),
+        )
+        val pkgRule = PackageRule(
+            packageName = "com.instagram.android",
+            mode = PackageMode.PARTIAL,
+            block = listOf(compoundRule),
+        )
+        val customRuleSet = RuleSet(1, mapOf(pkgRule.packageName to pkgRule), emptyMap(), emptyList())
+
+        // 1. Only viewer present (tab missing) -> Unmatched
+        val onlyViewer = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "clips_viewer_view_pager")),
+        )
+        assertEquals(BlockDecision.Unmatched, evaluator.evaluatePackage("com.instagram.android", onlyViewer, customRuleSet).decision)
+
+        // 2. Viewer present and tab present but tab NOT selected -> Unmatched
+        val viewerAndUnselectedTab = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "clips_viewer_view_pager"),
+                FakeAccessibleNode(viewId = "clips_tab", isSelected = false),
+            ),
+        )
+        assertEquals(BlockDecision.Unmatched, evaluator.evaluatePackage("com.instagram.android", viewerAndUnselectedTab, customRuleSet).decision)
+
+        // 3. Tab present and selected, but viewer missing -> Unmatched
+        val onlySelectedTab = FakeAccessibleNode(
+            children = listOf(FakeAccessibleNode(viewId = "clips_tab", isSelected = true)),
+        )
+        assertEquals(BlockDecision.Unmatched, evaluator.evaluatePackage("com.instagram.android", onlySelectedTab, customRuleSet).decision)
+
+        // 4. Both present and tab selected -> Blocked
+        val bothPresentAndSelected = FakeAccessibleNode(
+            children = listOf(
+                FakeAccessibleNode(viewId = "clips_viewer_view_pager"),
+                FakeAccessibleNode(viewId = "clips_tab", isSelected = true),
+            ),
+        )
+        val decision = evaluator.evaluatePackage("com.instagram.android", bothPresentAndSelected, customRuleSet).decision
+        assertTrue(decision is BlockDecision.Block)
+        assertEquals("reels_viewer_and_selected_tab", (decision as BlockDecision.Block).ruleId)
+    }
 }

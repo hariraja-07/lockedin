@@ -33,15 +33,7 @@ object RuleSetParser {
 
             val block = packageJson.optJSONArray("block")?.let { array ->
                 (0 until array.length()).map { i ->
-                    val entry = array.getJSONObject(i)
-                    MatchRule(
-                        id = entry.getString("id"),
-                        viewIdRegex = entry.optRegexOrNull("viewIdRegex"),
-                        requireTextRegex = entry.optRegexOrNull("requireTextRegex"),
-                        requireContentDescRegex = entry.optRegexOrNull("requireContentDescRegex"),
-                        requireSelected = if (entry.has("requireSelected")) entry.getBoolean("requireSelected") else null,
-                        requireChecked = if (entry.has("requireChecked")) entry.getBoolean("requireChecked") else null,
-                    )
+                    parseMatchRule(array.getJSONObject(i))
                 }
             } ?: emptyList()
 
@@ -63,5 +55,24 @@ object RuleSetParser {
         } ?: emptyList()
 
         return RuleSet(version, packages, browsers, browserBlockUrlPatterns)
+    }
+
+    private fun parseMatchRule(entry: JSONObject, defaultId: String = ""): MatchRule {
+        val id = entry.optString("id", defaultId)
+        val allMatch = entry.optJSONArray("allMatch")?.let { array ->
+            (0 until array.length()).map { i ->
+                parseMatchRule(array.getJSONObject(i), defaultId = "${id}_sub_$i")
+            }
+        } ?: emptyList()
+
+        return MatchRule(
+            id = id,
+            viewIdRegex = entry.optRegexOrNull("viewIdRegex"),
+            requireTextRegex = entry.optRegexOrNull("requireTextRegex"),
+            requireContentDescRegex = entry.optRegexOrNull("requireContentDescRegex"),
+            requireSelected = if (entry.has("requireSelected")) entry.getBoolean("requireSelected") else null,
+            requireChecked = if (entry.has("requireChecked")) entry.getBoolean("requireChecked") else null,
+            allMatch = allMatch,
+        )
     }
 }

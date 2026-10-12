@@ -28,8 +28,14 @@ class RuleEvaluator(
         }
 
         for (rule in packageRule.block) {
-            val matchingNode = nodes.firstOrNull { node -> matches(node, rule) }
-            if (matchingNode != null) {
+            val isMatch = if (rule.allMatch.isNotEmpty()) {
+                rule.allMatch.all { subRule ->
+                    nodes.any { node -> matches(node, subRule) }
+                } && (!hasNodeConditions(rule) || nodes.any { node -> matches(node, rule.copy(allMatch = emptyList())) })
+            } else {
+                nodes.any { node -> matches(node, rule) }
+            }
+            if (isMatch) {
                 return EvaluationResult(BlockDecision.Block(rule.id), nodes)
             }
         }
@@ -55,9 +61,20 @@ class RuleEvaluator(
         return EvaluationResult(decision, nodes)
     }
 
+    private fun hasNodeConditions(rule: MatchRule): Boolean =
+        rule.viewIdRegex != null ||
+            rule.requireTextRegex != null ||
+            rule.requireContentDescRegex != null ||
+            rule.requireSelected != null ||
+            rule.requireChecked != null
+
     private fun matches(node: AccessibleNode, rule: MatchRule): Boolean {
-        val viewId = node.viewId ?: return false
-        if (rule.viewIdRegex == null || !rule.viewIdRegex.containsMatchIn(viewId)) return false
+        if (!hasNodeConditions(rule)) return false
+
+        if (rule.viewIdRegex != null) {
+            val viewId = node.viewId ?: return false
+            if (!rule.viewIdRegex.containsMatchIn(viewId)) return false
+        }
 
         rule.requireTextRegex?.let { required ->
             val text = node.text ?: return false

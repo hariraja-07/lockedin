@@ -60,6 +60,31 @@ class RuleSetParserTest {
         val parsed = RuleSetParser.parse(withSelectedJson).packages.getValue("test.pkg").block[0]
         assertEquals(true, parsed.requireSelected)
         assertEquals(false, parsed.requireChecked)
+
+        val compoundJson = """
+            {
+              "version": 1,
+              "packages": {
+                "com.instagram.android": {
+                  "mode": "PARTIAL",
+                  "block": [
+                    {
+                      "id": "ig_reels_compound",
+                      "allMatch": [
+                        { "viewIdRegex": ".*clips_viewer.*" },
+                        { "viewIdRegex": ".*clips_tab.*", "requireSelected": true }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+        """.trimIndent()
+        val compoundRule = RuleSetParser.parse(compoundJson).packages.getValue("com.instagram.android").block[0]
+        assertEquals("ig_reels_compound", compoundRule.id)
+        assertEquals(2, compoundRule.allMatch.size)
+        assertTrue(compoundRule.allMatch[0].viewIdRegex!!.containsMatchIn("clips_viewer_view_pager"))
+        assertEquals(true, compoundRule.allMatch[1].requireSelected)
     }
 
     @Test

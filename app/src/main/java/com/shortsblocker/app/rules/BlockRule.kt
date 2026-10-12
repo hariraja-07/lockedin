@@ -9,6 +9,7 @@ data class MatchRule(
     val requireContentDescRegex: Regex? = null,
     val requireSelected: Boolean? = null,
     val requireChecked: Boolean? = null,
+    val allMatch: List<MatchRule> = emptyList(),
 )
 
 data class WhitelistRule(
