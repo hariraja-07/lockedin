@@ -73,7 +73,7 @@ class BlockGuardForegroundService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
-        lockoutOverlay?.hide()
+        lockoutOverlay?.release()
         super.onDestroy()
     }
 

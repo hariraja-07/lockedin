@@ -40,6 +40,7 @@ class BlockActionExecutor(
 
     fun release() {
         mainHandler.removeCallbacksAndMessages(null)
+        overlay.release()
     }
 
     companion object {

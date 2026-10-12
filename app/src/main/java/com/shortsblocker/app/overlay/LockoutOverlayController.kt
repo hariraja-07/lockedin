@@ -12,6 +12,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.text.InputType
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -54,13 +55,34 @@ class LockoutOverlayController(private val context: Context) {
         ).apply {
             gravity = Gravity.CENTER
         }
-        runCatching { windowManager.addView(view, params) }
-            .onSuccess { currentView = view }
+        try {
+            windowManager.addView(view, params)
+            currentView = view
+        } catch (e: WindowManager.BadTokenException) {
+            Log.w(TAG, "BadTokenException adding lockout overlay", e)
+            currentView = null
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException adding lockout overlay (missing overlay permission)", e)
+            currentView = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to add lockout overlay view", e)
+            currentView = null
+        }
     }
 
     fun hide() {
-        currentView?.let { runCatching { windowManager.removeView(it) } }
+        val view = currentView ?: return
         currentView = null
+        try {
+            windowManager.removeView(view)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error removing lockout overlay view", e)
+        }
+    }
+
+    fun release() {
+        mainHandler.removeCallbacksAndMessages(null)
+        hide()
     }
 
     private fun overlayType(): Int =
@@ -178,6 +200,7 @@ class LockoutOverlayController(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "LockoutOverlay"
         private const val SETTINGS_GRACE_MS = 60_000L
         private const val MAX_ATTEMPTS = 5
         private const val ATTEMPT_LOCKOUT_MS = 30_000L
