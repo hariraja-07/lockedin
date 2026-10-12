@@ -20,6 +20,8 @@
     <string name="onboarding_notification_granted">✓ Notification Permission Allowed</string>
     <string name="onboarding_notification_hint">Optional: If denied, LockedIn still guards and blocks normally, but the status notification stays completely silent and hidden.</string>
     <string name="onboarding_oem_hint">On Xiaomi/Huawei/Samsung/Oppo/OnePlus also enable \"Autostart\" and exclude LockedIn from battery cleaning under the phone\'s Settings → Apps, or the system may kill the watchdog.</string>
+    <string name="onboarding_oem_button">Open autostart / battery settings</string>
+    <string name="onboarding_restricted_settings_notice">Android 13+ notice: If "LockedIn detection service" is greyed out in Accessibility settings, go to phone Settings → Apps → LockedIn → ⋮ (top right) → tap "Allow restricted settings", then return here.</string>
     <string name="onboarding_pin_button">Set up PIN and get started</string>
     <string name="onboarding_sideload_notice">If installed outside the Play Store, enabling this app under Settings &gt; Accessibility\nmay require an extra confirmation step.</string>
     <string name="onboarding_soft_lock_notice">How the hard lock works: turning blocking off inside the app requires the PIN. If the accessibility service is switched off in system Settings anyway, the watchdog notices within seconds and covers the screen with a lock wall until the service is re-enabled.</string>

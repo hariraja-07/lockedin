@@ -38,6 +38,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.shortsblocker.app.R
+import com.shortsblocker.app.domain.IntentLauncher
 import com.shortsblocker.app.service.AccessibilityStatus
 
 @Composable
@@ -100,43 +101,39 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         // Accessibility Permission
         if (isAccessibilityGranted) {
             OutlinedButton(
-                onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                onClick = { IntentLauncher.openAccessibilitySettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("✓ Accessibility Service Granted", color = MaterialTheme.colorScheme.primary)
             }
         } else {
             Button(
-                onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                onClick = { IntentLauncher.openAccessibilitySettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.onboarding_accessibility_button))
             }
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isAccessibilityGranted) {
+            Text(
+                text = stringResource(R.string.onboarding_restricted_settings_notice),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         // Overlay Permission
         if (isOverlayGranted) {
             OutlinedButton(
-                onClick = {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${context.packageName}"),
-                    )
-                    context.startActivity(intent)
-                },
+                onClick = { IntentLauncher.openOverlaySettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("✓ Overlay Permission Granted", color = MaterialTheme.colorScheme.primary)
             }
         } else {
             Button(
-                onClick = {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${context.packageName}"),
-                    )
-                    context.startActivity(intent)
-                },
+                onClick = { IntentLauncher.openOverlaySettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.onboarding_overlay_button))
@@ -146,26 +143,14 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         // Battery Optimization
         if (isBatteryGranted) {
             OutlinedButton(
-                onClick = {
-                    val intent = Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                        Uri.parse("package:${context.packageName}"),
-                    )
-                    context.startActivity(intent)
-                },
+                onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("✓ Battery Exemption Granted", color = MaterialTheme.colorScheme.primary)
             }
         } else {
             Button(
-                onClick = {
-                    val intent = Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                        Uri.parse("package:${context.packageName}"),
-                    )
-                    context.startActivity(intent)
-                },
+                onClick = { IntentLauncher.openBatteryOptimizationSettings(context) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.onboarding_battery_button))
@@ -176,12 +161,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (isNotificationGranted) {
                 OutlinedButton(
-                    onClick = {
-                        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        }
-                        context.startActivity(intent)
-                    },
+                    onClick = { IntentLauncher.openAppNotificationSettings(context) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.onboarding_notification_granted), color = MaterialTheme.colorScheme.primary)
@@ -198,6 +178,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         }
 
         Text(text = stringResource(R.string.onboarding_oem_hint), style = MaterialTheme.typography.bodySmall)
+
+        OutlinedButton(
+            onClick = { IntentLauncher.openOemAutostartSettings(context) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.onboarding_oem_button))
+        }
 
         // Final Step: Set PIN
         Button(

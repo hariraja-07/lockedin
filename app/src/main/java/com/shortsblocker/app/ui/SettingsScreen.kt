@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.shortsblocker.app.R
+import com.shortsblocker.app.domain.IntentLauncher
 import com.shortsblocker.app.prefs.BlockingPreferences
 import com.shortsblocker.app.prefs.SupportedApps
 
@@ -38,27 +39,19 @@ fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> 
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium)
 
         Button(onClick = {
-            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            IntentLauncher.openAccessibilitySettings(context)
         }) {
             Text(stringResource(R.string.settings_open_accessibility))
         }
 
         Button(onClick = {
-            val intent = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:${context.packageName}"),
-            )
-            context.startActivity(intent)
+            IntentLauncher.openOverlaySettings(context)
         }) {
             Text(stringResource(R.string.settings_open_overlay))
         }
 
         Button(onClick = {
-            val intent = Intent(
-                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                Uri.parse("package:${context.packageName}"),
-            )
-            context.startActivity(intent)
+            IntentLauncher.openBatteryOptimizationSettings(context)
         }) {
             Text(stringResource(R.string.settings_open_battery))
         }
@@ -67,6 +60,12 @@ fun SettingsScreen(blockingPreferences: BlockingPreferences, onChangePin: () -> 
             text = stringResource(R.string.onboarding_oem_hint),
             style = MaterialTheme.typography.bodySmall,
         )
+
+        Button(onClick = {
+            IntentLauncher.openOemAutostartSettings(context)
+        }) {
+            Text(stringResource(R.string.onboarding_oem_button))
+        }
 
         Button(onClick = onChangePin) {
             Text(stringResource(R.string.settings_change_pin))
