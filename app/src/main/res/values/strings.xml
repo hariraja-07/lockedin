@@ -124,5 +124,17 @@
     <string name="pin_entry_locked_out">Too many incorrect attempts. Try again in %1$ds</string>
     <string name="pin_entry_tries_left">Incorrect PIN (%1$d attempts remaining)</string>
     <string name="home_log_status_blocked">🚫 Blocked</string>
-    <string name="home_log_status_unmatched">✓ Unmatched</string>
+    <string name="home_log_status_unmatched">✓ Passed</string>
+    <string name="pin_saving">Securing PIN…</string>
+    <string name="pin_verifying">Verifying…</string>
+    <string name="home_header_subtitle">Focus &amp; Anti-Distraction Guard</string>
+    <string name="home_stat_blocks_title">Shorts Blocked</string>
+    <string name="home_stat_status_title">Guard Engine</string>
+    <string name="home_stat_healthy">Active</string>
+    <string name="home_stat_attention">Action needed</string>
+    <string name="home_empty_log_title">No activity recorded yet</string>
+    <string name="home_empty_log_desc">Decisions will appear here when YouTube Shorts or Instagram Reels open.</string>
+    <string name="pin_setup_length_counter">%1$d digits entered</string>
+    <string name="pin_setup_match_indicator">✓ PINs match</string>
+    <string name="pin_setup_mismatch_indicator">PINs do not match</string>
 </resources>

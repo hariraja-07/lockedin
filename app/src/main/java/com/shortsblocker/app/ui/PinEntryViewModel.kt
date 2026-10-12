@@ -31,6 +31,9 @@ class PinEntryViewModel
         private val _errorMessage = MutableStateFlow<String?>(null)
         val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+        private val _isVerifying = MutableStateFlow(false)
+        val isVerifying: StateFlow<Boolean> = _isVerifying.asStateFlow()
+
         fun updateLockoutTick() {
             val remaining = tracker.remainingLockoutSeconds()
             _remainingLockoutSeconds.value = remaining
@@ -52,23 +55,28 @@ class PinEntryViewModel
             }
 
             viewModelScope.launch {
-                val valid =
-                    withContext(Dispatchers.IO) {
-                        pinManager.verifyPin(pin)
+                _isVerifying.value = true
+                try {
+                    val valid =
+                        withContext(Dispatchers.IO) {
+                            pinManager.verifyPin(pin)
+                        }
+                    if (valid) {
+                        tracker.recordSuccess()
+                        _failedAttempts.value = 0
+                        _errorMessage.value = null
+                        onSuccess()
+                    } else {
+                        val wait = tracker.recordFailure()
+                        _failedAttempts.value = tracker.failedAttempts()
+                        if (wait > 0) {
+                            _remainingLockoutSeconds.value = wait
+                            _isLockedOut.value = true
+                        }
+                        _errorMessage.value = "Incorrect PIN"
                     }
-                if (valid) {
-                    tracker.recordSuccess()
-                    _failedAttempts.value = 0
-                    _errorMessage.value = null
-                    onSuccess()
-                } else {
-                    val wait = tracker.recordFailure()
-                    _failedAttempts.value = tracker.failedAttempts()
-                    if (wait > 0) {
-                        _remainingLockoutSeconds.value = wait
-                        _isLockedOut.value = true
-                    }
-                    _errorMessage.value = "Incorrect PIN"
+                } finally {
+                    _isVerifying.value = false
                 }
             }
         }

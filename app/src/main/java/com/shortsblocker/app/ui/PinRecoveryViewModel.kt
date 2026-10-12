@@ -28,6 +28,9 @@ class PinRecoveryViewModel
         private val _failedAttempts = MutableStateFlow(pinManager.recoveryFailedAttempts())
         val failedAttempts: StateFlow<Int> = _failedAttempts.asStateFlow()
 
+        private val _isVerifying = MutableStateFlow(false)
+        val isVerifying: StateFlow<Boolean> = _isVerifying.asStateFlow()
+
         fun updateCooldownTick() {
             val remaining = pinManager.remainingRecoveryCooldownSeconds()
             _remainingCooldownSeconds.value = remaining
@@ -46,19 +49,24 @@ class PinRecoveryViewModel
             }
 
             viewModelScope.launch {
-                val valid =
-                    withContext(Dispatchers.IO) {
-                        pinManager.verifyRecoveryAnswer(answer)
+                _isVerifying.value = true
+                try {
+                    val valid =
+                        withContext(Dispatchers.IO) {
+                            pinManager.verifyRecoveryAnswer(answer)
+                        }
+                    if (valid) {
+                        _failedAttempts.value = 0
+                        _isLockedOut.value = false
+                        onRecovered()
+                    } else {
+                        _failedAttempts.value = pinManager.recoveryFailedAttempts()
+                        _isLockedOut.value = pinManager.isRecoveryLockedOut()
+                        _remainingCooldownSeconds.value = pinManager.remainingRecoveryCooldownSeconds()
+                        onError()
                     }
-                if (valid) {
-                    _failedAttempts.value = 0
-                    _isLockedOut.value = false
-                    onRecovered()
-                } else {
-                    _failedAttempts.value = pinManager.recoveryFailedAttempts()
-                    _isLockedOut.value = pinManager.isRecoveryLockedOut()
-                    _remainingCooldownSeconds.value = pinManager.remainingRecoveryCooldownSeconds()
-                    onError()
+                } finally {
+                    _isVerifying.value = false
                 }
             }
         }
